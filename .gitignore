@@ -6,7 +6,7 @@ __pycache__/
 .env
 .idea/
 .vscode/
-.docs/
+docs/
 *.egg-info/
 // *.egg
 // *.egg-info/
