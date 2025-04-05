@@ -41,19 +41,15 @@ class User(UserMixin, db.Model):
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    semantic_tags = db.Column(db.String(500), nullable=False)
-    max_students = db.Column(db.Integer, nullable=False)
-    duration_weeks = db.Column(db.Integer, nullable=False)
-    category = db.Column(db.String(100), nullable=False)
-    level = db.Column(db.String(50), nullable=False)
-    prerequisites = db.Column(db.Text)
+    semantic_tags = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    def __repr__(self):
-        return f'<Course {self.title}>'
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    enrollments = db.relationship('Enrollment', backref='course', lazy=True)
+    max_students = db.Column(db.Integer, default=50)
+    start_date = db.Column(db.DateTime, default=datetime.utcnow)
+    duration_weeks = db.Column(db.Integer, default=12)
 
 class Enrollment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -456,26 +452,25 @@ def create_learning_path():
     return jsonify({'path_id': path.id})
 
 @app.route('/api/search')
-def search():
-    query = request.args.get('q', '').lower()
+def search_courses():
+    query = request.args.get('q', '')
     if not query:
         return jsonify([])
     
-    # Search across title, description, and tags
+    # Search courses by title, description, and tags
     courses = Course.query.filter(
-        (Course.title.ilike(f'%{query}%')) |
-        (Course.description.ilike(f'%{query}%')) |
-        (Course.semantic_tags.ilike(f'%{query}%'))
+        db.or_(
+            Course.title.ilike(f'%{query}%'),
+            Course.description.ilike(f'%{query}%'),
+            Course.semantic_tags.ilike(f'%{query}%')
+        )
     ).all()
-
-    # Add category information to search results
+    
     return jsonify([{
         'id': course.id,
         'title': course.title,
         'description': course.description,
-        'category': course.category,
-        'level': course.level,
-        'tags': [tag.strip() for tag in course.semantic_tags.split(',') if tag.strip()],
+        'tags': course.semantic_tags.split(',') if course.semantic_tags else [],
         'max_students': course.max_students,
         'duration_weeks': course.duration_weeks
     } for course in courses])
@@ -512,86 +507,17 @@ def admin_dashboard():
 @admin_required
 def admin_add_course():
     if request.method == 'POST':
-        # Validate STEAM category
-        allowed_categories = [
-            'biology', 'chemistry', 'physics', 'astronomy', 'environmental',
-            'programming', 'web_development', 'mobile_apps', 'ai_ml', 'cybersecurity',
-            'mechanical', 'electrical', 'civil', 'chemical', 'aerospace',
-            'digital_art', 'animation', 'graphic_design', 'game_design', 'music_production',
-            'algebra', 'calculus', 'statistics', 'geometry', 'discrete_math'
-        ]
-        
-        category = request.form.get('category')
-        if not category or category not in allowed_categories:
-            flash('Please select a valid STEAM category', 'error')
-            return redirect(url_for('admin_add_course'))
-
-        # Validate course level
-        allowed_levels = ['beginner', 'intermediate', 'advanced']
-        level = request.form.get('level')
-        if not level or level not in allowed_levels:
-            flash('Please select a valid course level', 'error')
-            return redirect(url_for('admin_add_course'))
-
-        # Validate max students (1-100)
-        try:
-            max_students = int(request.form['max_students'])
-            if max_students < 1 or max_students > 100:
-                flash('Maximum students must be between 1 and 100', 'error')
-                return redirect(url_for('admin_add_course'))
-        except (ValueError, TypeError):
-            flash('Invalid value for maximum students', 'error')
-            return redirect(url_for('admin_add_course'))
-
-        # Validate duration (1-24 weeks)
-        try:
-            duration_weeks = int(request.form['duration_weeks'])
-            if duration_weeks < 1 or duration_weeks > 24:
-                flash('Course duration must be between 1 and 24 weeks', 'error')
-                return redirect(url_for('admin_add_course'))
-        except (ValueError, TypeError):
-            flash('Invalid value for course duration', 'error')
-            return redirect(url_for('admin_add_course'))
-
-        # Create course
         course = Course(
             title=request.form['title'],
             description=request.form['description'],
             semantic_tags=request.form['tags'],
-            max_students=max_students,
-            duration_weeks=duration_weeks,
-            category=category,
-            level=level,
-            prerequisites=request.form.get('prerequisites', '')
+            max_students=int(request.form['max_students']),
+            duration_weeks=int(request.form['duration_weeks'])
         )
-
-        # Validate tags
-        tags = [tag.strip() for tag in request.form['tags'].split(',') if tag.strip()]
-        if not tags:
-            flash('Please add at least one tag', 'error')
-            return redirect(url_for('admin_add_course'))
-
-        # Check if tags are STEAM-related
-        steam_tags = [
-            'programming', 'python', 'javascript', 'java', 'c++', 'data_structures', 'algorithms',
-            'machine_learning', 'ai', 'neural_networks', 'deep_learning', 'cybersecurity', 'networking',
-            'database', 'sql', 'web_development', 'frontend', 'backend', 'full_stack',
-            'mobile_apps', 'android', 'ios', 'game_development', 'unity', 'unreal',
-            'digital_art', 'graphic_design', 'animation', '3d_modeling', 'music_production',
-            'mathematics', 'algebra', 'calculus', 'statistics', 'geometry',
-            'physics', 'chemistry', 'biology', 'astronomy', 'environmental_science',
-            'mechanical_engineering', 'electrical_engineering', 'civil_engineering', 'chemical_engineering', 'aerospace_engineering'
-        ]
-
-        non_steam_tags = [tag for tag in tags if tag.lower() not in steam_tags]
-        if non_steam_tags:
-            flash(f'Warning: Some tags are not STEAM-related: {", ".join(non_steam_tags)}', 'warning')
-
         db.session.add(course)
         db.session.commit()
         flash('Course added successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
-
     return render_template('admin/course_form.html', course=None)
 
 @app.route('/admin/course/edit/<int:course_id>', methods=['GET', 'POST'])
@@ -599,79 +525,15 @@ def admin_add_course():
 @admin_required
 def admin_edit_course(course_id):
     course = Course.query.get_or_404(course_id)
-    
     if request.method == 'POST':
-        # Same validation as add_course, but with existing course
-        allowed_categories = [
-            'biology', 'chemistry', 'physics', 'astronomy', 'environmental',
-            'programming', 'web_development', 'mobile_apps', 'ai_ml', 'cybersecurity',
-            'mechanical', 'electrical', 'civil', 'chemical', 'aerospace',
-            'digital_art', 'animation', 'graphic_design', 'game_design', 'music_production',
-            'algebra', 'calculus', 'statistics', 'geometry', 'discrete_math'
-        ]
-        
-        category = request.form.get('category')
-        if not category or category not in allowed_categories:
-            flash('Please select a valid STEAM category', 'error')
-            return redirect(url_for('admin_edit_course', course_id=course_id))
-
-        allowed_levels = ['beginner', 'intermediate', 'advanced']
-        level = request.form.get('level')
-        if not level or level not in allowed_levels:
-            flash('Please select a valid course level', 'error')
-            return redirect(url_for('admin_edit_course', course_id=course_id))
-
-        try:
-            max_students = int(request.form['max_students'])
-            if max_students < 1 or max_students > 100:
-                flash('Maximum students must be between 1 and 100', 'error')
-                return redirect(url_for('admin_edit_course', course_id=course_id))
-        except (ValueError, TypeError):
-            flash('Invalid value for maximum students', 'error')
-            return redirect(url_for('admin_edit_course', course_id=course_id))
-
-        try:
-            duration_weeks = int(request.form['duration_weeks'])
-            if duration_weeks < 1 or duration_weeks > 24:
-                flash('Course duration must be between 1 and 24 weeks', 'error')
-                return redirect(url_for('admin_edit_course', course_id=course_id))
-        except (ValueError, TypeError):
-            flash('Invalid value for course duration', 'error')
-            return redirect(url_for('admin_edit_course', course_id=course_id))
-
         course.title = request.form['title']
         course.description = request.form['description']
         course.semantic_tags = request.form['tags']
-        course.max_students = max_students
-        course.duration_weeks = duration_weeks
-        course.category = category
-        course.level = level
-        course.prerequisites = request.form.get('prerequisites', '')
-
-        tags = [tag.strip() for tag in request.form['tags'].split(',') if tag.strip()]
-        if not tags:
-            flash('Please add at least one tag', 'error')
-            return redirect(url_for('admin_edit_course', course_id=course_id))
-
-        steam_tags = [
-            'programming', 'python', 'javascript', 'java', 'c++', 'data_structures', 'algorithms',
-            'machine_learning', 'ai', 'neural_networks', 'deep_learning', 'cybersecurity', 'networking',
-            'database', 'sql', 'web_development', 'frontend', 'backend', 'full_stack',
-            'mobile_apps', 'android', 'ios', 'game_development', 'unity', 'unreal',
-            'digital_art', 'graphic_design', 'animation', '3d_modeling', 'music_production',
-            'mathematics', 'algebra', 'calculus', 'statistics', 'geometry',
-            'physics', 'chemistry', 'biology', 'astronomy', 'environmental_science',
-            'mechanical_engineering', 'electrical_engineering', 'civil_engineering', 'chemical_engineering', 'aerospace_engineering'
-        ]
-
-        non_steam_tags = [tag for tag in tags if tag.lower() not in steam_tags]
-        if non_steam_tags:
-            flash(f'Warning: Some tags are not STEAM-related: {", ".join(non_steam_tags)}', 'warning')
-
+        course.max_students = int(request.form['max_students'])
+        course.duration_weeks = int(request.form['duration_weeks'])
         db.session.commit()
         flash('Course updated successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
-
     return render_template('admin/course_form.html', course=course)
 
 @app.route('/admin/course/delete/<int:course_id>', methods=['POST'])
@@ -704,9 +566,7 @@ def add_sample_courses():
         semantic_tags='programming,python,beginner',
         user_id=1,
         max_students=50,
-        duration_weeks=8,
-        category='programming',
-        level='beginner'
+        duration_weeks=8
     )
     
     web_dev_course = Course(
@@ -715,9 +575,7 @@ def add_sample_courses():
         semantic_tags='web,html,css,javascript',
         user_id=1,
         max_students=40,
-        duration_weeks=10,
-        category='web_development',
-        level='intermediate'
+        duration_weeks=10
     )
     
     db.session.add(python_course)
@@ -730,9 +588,7 @@ def add_sample_courses():
         description='Learn to design scalable and resilient cloud architectures using AWS, Azure, and GCP.',
         semantic_tags='cloud,aws,azure,gcp,architecture,infrastructure',
         max_students=40,
-        duration_weeks=10,
-        category='programming',
-        level='advanced'
+        duration_weeks=10
     )
     db.session.add(cloud_arch)
 
@@ -741,9 +597,7 @@ def add_sample_courses():
         description='Master cybersecurity concepts, penetration testing, and security architecture.',
         semantic_tags='security,cybersecurity,pentest,networking,encryption',
         max_students=35,
-        duration_weeks=12,
-        category='cybersecurity',
-        level='advanced'
+        duration_weeks=12
     )
     db.session.add(cybersecurity)
 
@@ -752,9 +606,7 @@ def add_sample_courses():
         description='Build robust data pipelines using modern tools and best practices.',
         semantic_tags='data,etl,python,sql,apache,spark,airflow',
         max_students=45,
-        duration_weeks=8,
-        category='programming',
-        level='intermediate'
+        duration_weeks=8
     )
     db.session.add(data_engineering)
 
@@ -763,9 +615,7 @@ def add_sample_courses():
         description='Create mobile apps for iOS and Android using React Native and Flutter.',
         semantic_tags='mobile,react-native,flutter,ios,android,javascript',
         max_students=50,
-        duration_weeks=10,
-        category='mobile_apps',
-        level='intermediate'
+        duration_weeks=10
     )
     db.session.add(mobile_dev)
 
@@ -774,9 +624,7 @@ def add_sample_courses():
         description='Implement DevOps practices and build CI/CD pipelines using modern tools.',
         semantic_tags='devops,ci-cd,jenkins,docker,kubernetes,git',
         max_students=40,
-        duration_weeks=8,
-        category='programming',
-        level='intermediate'
+        duration_weeks=8
     )
     db.session.add(devops)
 
@@ -785,9 +633,7 @@ def add_sample_courses():
         description='Design and deploy production-ready AI/ML systems at scale.',
         semantic_tags='ai,ml,python,tensorflow,pytorch,mlops',
         max_students=35,
-        duration_weeks=14,
-        category='ai_ml',
-        level='advanced'
+        duration_weeks=14
     )
     db.session.add(ai_ml)
 
@@ -796,9 +642,7 @@ def add_sample_courses():
         description='Build decentralized applications and smart contracts on Ethereum and other platforms.',
         semantic_tags='blockchain,ethereum,solidity,web3,smart-contracts',
         max_students=30,
-        duration_weeks=10,
-        category='programming',
-        level='advanced'
+        duration_weeks=10
     )
     db.session.add(blockchain)
 
@@ -807,9 +651,7 @@ def add_sample_courses():
         description='Design and implement scalable microservices architectures using modern tools.',
         semantic_tags='microservices,architecture,docker,kubernetes,api,spring',
         max_students=45,
-        duration_weeks=12,
-        category='programming',
-        level='advanced'
+        duration_weeks=12
     )
     db.session.add(microservices)
 
