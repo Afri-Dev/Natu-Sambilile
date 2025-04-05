@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }} - Learning Platform{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-8" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="{{ url_for('my_courses') }}" class="text-gray-500 hover:text-gray-700">My Courses</a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <a href="#" class="text-gray-500 hover:text-gray-700">{{ course.title }}</a>
+                    </div>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <span class="text-gray-900">Lesson {{ lesson.lesson_number }}</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Lesson Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ lesson.title }}</h1>
+            <p class="text-lg text-gray-600">{{ lesson.description }}</p>
+        </div>
+
+        <!-- Lesson Content -->
+        <div class="prose max-w-none">
+            {{ lesson.content|safe }}
+        </div>
+
+        <!-- Video Content (if available) -->
+        {% if lesson.video_url %}
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold mb-4">Lesson Video</h2>
+            <div class="aspect-w-16 aspect-h-9">
+                <iframe src="{{ lesson.video_url }}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen
+                        class="w-full h-full rounded-lg shadow-lg">
+                </iframe>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Resources -->
+        {% if lesson.resources %}
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold mb-4">Additional Resources</h2>
+            <ul class="space-y-3">
+                {% for resource in lesson.resources %}
+                <li>
+                    <a href="{{ resource.url }}" 
+                       target="_blank"
+                       class="flex items-center text-indigo-600 hover:text-indigo-500">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        {{ resource.title }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Navigation and Progress -->
+        <div class="mt-12 border-t border-gray-200 pt-8">
+            <div class="flex items-center justify-between">
+                {% if prev_lesson %}
+                <a href="{{ url_for('view_lesson', lesson_id=prev_lesson.id) }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Previous Lesson
+                </a>
+                {% else %}
+                <div></div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('complete_lesson', lesson_id=lesson.id) }}">
+                    <button type="submit"
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 {% if lesson_completed %}opacity-50 cursor-not-allowed{% endif %}"
+                            {% if lesson_completed %}disabled{% endif %}>
+                        {% if lesson_completed %}
+                            <i class="fas fa-check mr-2"></i>
+                            Completed
+                        {% else %}
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Mark as Complete
+                        {% endif %}
+                    </button>
+                </form>
+
+                {% if next_lesson %}
+                <a href="{{ url_for('view_lesson', lesson_id=next_lesson.id) }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Next Lesson
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+                {% else %}
+                <a href="{{ url_for('take_quiz', lesson_id=lesson.id) }}"
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">
+                    Take Quiz
+                    <i class="fas fa-question-circle ml-2"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

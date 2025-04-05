@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz.title }} - Learning Platform{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-8" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="{{ url_for('my_courses') }}" class="text-gray-500 hover:text-gray-700">My Courses</a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <a href="#" class="text-gray-500 hover:text-gray-700">{{ lesson.course.title }}</a>
+                    </div>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <a href="{{ url_for('view_lesson', lesson_id=lesson.id) }}" class="text-gray-500 hover:text-gray-700">
+                            Lesson {{ lesson.lesson_number }}
+                        </a>
+                    </div>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <span class="text-gray-900">Quiz</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Quiz Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ quiz.title }}</h1>
+            {% if quiz.description %}
+            <p class="text-lg text-gray-600">{{ quiz.description }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Previous Attempts -->
+        {% if previous_attempts %}
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Previous Attempts</h2>
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <ul class="divide-y divide-gray-200">
+                    {% for attempt in previous_attempts %}
+                    <li class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-900">
+                                Attempt #{{ loop.revindex }}
+                            </div>
+                            <div class="text-sm font-medium">
+                                <span class="px-2 py-1 rounded-full {% if attempt.score >= 70 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    Score: {{ "%.1f"|format(attempt.score) }}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-500">
+                            Completed on {{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quiz Form -->
+        <form method="POST" action="{{ url_for('submit_quiz', lesson_id=lesson.id) }}" class="space-y-8">
+            {% for question in quiz.questions %}
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        {{ loop.index }}. {{ question.question_text }}
+                    </h3>
+                    <div class="space-y-4">
+                        {% for option in question.options %}
+                        <div class="flex items-center">
+                            <input id="option_{{ option.id }}" 
+                                   name="question_{{ question.id }}" 
+                                   type="radio" 
+                                   value="{{ option.id }}"
+                                   required
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                            <label for="option_{{ option.id }}" 
+                                   class="ml-3 block text-sm font-medium text-gray-700">
+                                {{ option.option_text }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="flex justify-end">
+                <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Submit Quiz
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Courses - Learning Platform{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Available Courses</h1>
+            <a href="{{ url_for('my_courses') }}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+                <i class="fas fa-graduation-cap mr-2"></i>
+                My Courses
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {% for course in courses %}
+            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ course.title }}</h3>
+                    <p class="text-sm text-gray-500 mb-4">{{ course.description }}</p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        {% for tag in course.semantic_tags.split(',') %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {{ tag.strip() }}
+                        </span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4 flex justify-between items-center text-sm text-gray-500">
+                        <div>
+                            <i class="fas fa-users mr-1"></i>
+                            {{ course.max_students }} students max
+                        </div>
+                        <div>
+                            <i class="fas fa-clock mr-1"></i>
+                            {{ course.duration_weeks }} weeks
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 bg-gray-50">
+                    <div class="flex justify-between items-center">
+                        {% if course.id in user_enrollments %}
+                            <span class="text-sm text-green-600">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Enrolled
+                            </span>
+                            <button onclick="unenrollFromCourse({{ course.id }})"
+                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                <i class="fas fa-user-minus mr-2"></i>
+                                Unenroll
+                            </button>
+                        {% else %}
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                Start anytime
+                            </span>
+                            <button onclick="enrollInCourse({{ course.id }})"
+                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Enroll Now
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function enrollInCourse(courseId) {
+    fetch(`/enroll/${courseId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        } else {
+            alert(data.message || 'An error occurred');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while enrolling in the course');
+    });
+}
+
+function unenrollFromCourse(courseId) {
+    if (confirm('Are you sure you want to unenroll from this course?')) {
+        fetch(`/unenroll/${courseId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                alert(data.message || 'An error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while unenrolling from the course');
+        });
+    }
+}
+</script>
+{% endblock %}
