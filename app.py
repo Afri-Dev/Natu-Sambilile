@@ -203,10 +203,28 @@ def home():
 @app.route('/courses')
 @login_required
 def courses():
-    courses = Course.query.all()
-    # Get enrollment status for each course
-    user_enrollments = {e.course_id: e for e in current_user.enrollments}
-    return render_template('courses.html', courses=courses, user_enrollments=user_enrollments)
+    search_query = request.args.get('q', '')
+    
+    query = Course.query
+    if search_query:
+        # Apply search filter similar to /api/search
+        query = query.filter(
+            db.or_(
+                Course.title.ilike(f'%{search_query}%'),
+                Course.description.ilike(f'%{search_query}%'),
+                Course.semantic_tags.ilike(f'%{search_query}%')
+            )
+        )
+        
+    courses = query.all()
+    
+    # Get enrollment status for the potentially filtered courses
+    user_enrollments = {e.course_id: e for e in current_user.enrollments if e.course_id in [c.id for c in courses]}
+    
+    return render_template('courses.html', 
+                           courses=courses, 
+                           user_enrollments=user_enrollments, 
+                           search_query=search_query) # Pass the query to the template
 
 @app.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required

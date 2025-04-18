@@ -4,72 +4,82 @@
 {% block content %}
 <div class="py-6">
   <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold text-text-primary">Available Courses</h1>
+    {% if search_query %}
+      <h1 class="text-3xl font-bold text-text-primary">Search Results for "{{ search_query }}"</h1>
+    {% else %}
+      <h1 class="text-3xl font-bold text-text-primary">Available Courses</h1>
+    {% endif %}
     <a href="{{ url_for('my_courses') }}" class="btn-udemy btn-udemy-secondary px-4 py-2 text-sm">
       <i class="fas fa-bookmark mr-2"></i>
       My Learning
     </a>
   </div>
 
-  <div class="course-grid">
-    {% for course in courses %}
-    <div class="course-card-udemy flex flex-col">
-      <a href="#" class="block card-image">
-        <i class="fas fa-rocket fa-3x"></i>
-      </a>
-      <div class="card-content flex-grow flex flex-col">
-        <div class="flex-grow">
-          <a href="#" class="block">
-            <h4 class="card-title">{{ course.title }}</h4>
-          </a>
-          <p class="card-instructor card-placeholder">TechHub Instructor</p>
-          <div class="card-rating">
-            {% set rating = 4.0 + (loop.index % 10) / 10 %}
-            <span class="rating-value">{{ "%.1f"|format(rating) }}</span>
-            <span class="stars">
-              {% for i in range(rating|int) %}<i class="fas fa-star"></i>{% endfor %}
-              {% if rating % 1 >= 0.5 %}<i class="fas fa-star-half-alt"></i>{% endif %}
-              {% for i in range(5 - (rating|int) - (1 if rating % 1 >= 0.5 else 0)) %}<i class="far fa-star"></i>{% endfor %}
-            </span>
-            <span class="text-xs text-text-secondary card-placeholder">(Placeholder ratings)</span>
+  {% if courses %}
+    <div class="course-grid">
+      {% for course in courses %}
+      <div class="course-card-udemy flex flex-col">
+        <a href="#" class="block card-image">
+          <i class="fas fa-rocket fa-3x"></i>
+        </a>
+        <div class="card-content flex-grow flex flex-col">
+          <div class="flex-grow">
+            <a href="#" class="block">
+              <h4 class="card-title">{{ course.title }}</h4>
+            </a>
+            <p class="card-instructor card-placeholder">TechHub Instructor</p>
+            <div class="card-rating">
+              {% set rating = 4.0 + (loop.index % 10) / 10 %}
+              <span class="rating-value">{{ "%.1f"|format(rating) }}</span>
+              <span class="stars">
+                {% for i in range(rating|int) %}<i class="fas fa-star"></i>{% endfor %}
+                {% if rating % 1 >= 0.5 %}<i class="fas fa-star-half-alt"></i>{% endif %}
+                {% for i in range(5 - (rating|int) - (1 if rating % 1 >= 0.5 else 0)) %}<i class="far fa-star"></i>{% endfor %}
+              </span>
+              <span class="text-xs text-text-secondary card-placeholder">(Placeholder ratings)</span>
+            </div>
+            <p class="card-details">{{ course.duration_weeks }} weeks • {{ course.lessons|length }} lessons</p>
+            
+            <div class="mt-2 flex flex-wrap gap-1">
+              {% if course.semantic_tags %}
+                {% for tag in course.semantic_tags.split(',')[:3] %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                    {{ tag.strip() }}
+                  </span>
+                {% endfor %}
+              {% endif %}
+            </div>
           </div>
-          <p class="card-details">{{ course.duration_weeks }} weeks • {{ course.lessons|length }} lessons</p>
           
-          <div class="mt-2 flex flex-wrap gap-1">
-            {% if course.semantic_tags %}
-              {% for tag in course.semantic_tags.split(',')[:3] %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                  {{ tag.strip() }}
+          <div class="mt-4 pt-4 border-t border-border-color">
+            {% if course.id in user_enrollments %}
+              <div class="text-center">
+                <span class="text-sm font-medium text-green-600 dark:text-green-400">
+                  <i class="fas fa-check-circle mr-1"></i> Enrolled
                 </span>
-              {% endfor %}
+                <a href="{{ url_for('my_courses') }}" class="ml-2 text-xs text-primary hover:underline">Go to course</a>
+              </div>
+            {% else %}
+              <button onclick="enrollInCourse({{ course.id }}, this)" 
+                      class="btn-udemy btn-udemy-primary w-full block text-center text-sm" 
+                      data-course-title="{{ course.title|escape }}">
+                Enroll Now
+              </button>
             {% endif %}
           </div>
         </div>
-        
-        <div class="mt-4 pt-4 border-t border-border-color">
-          {% if course.id in user_enrollments %}
-            <div class="text-center">
-              <span class="text-sm font-medium text-green-600 dark:text-green-400">
-                <i class="fas fa-check-circle mr-1"></i> Enrolled
-              </span>
-              <a href="{{ url_for('my_courses') }}" class="ml-2 text-xs text-primary hover:underline">Go to course</a>
-            </div>
-          {% else %}
-            <button onclick="enrollInCourse({{ course.id }}, this)" 
-                    class="btn-udemy btn-udemy-primary w-full block text-center text-sm" 
-                    data-course-title="{{ course.title|escape }}">
-              Enroll Now
-            </button>
-          {% endif %}
-        </div>
       </div>
+      {% endfor %}
     </div>
-    {% else %}
+  {% else %}
     <div class="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-12">
+      {% if search_query %}
+        <p class="text-lg text-text-secondary">No courses found matching "{{ search_query }}".</p>
+      {% else %}
         <p class="text-lg text-text-secondary">No courses available yet.</p>
+      {% endif %}
     </div>
-    {% endfor %}
-  </div>
+  {% endif %}
 </div>
 
 <script>

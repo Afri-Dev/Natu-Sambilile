@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% block title %}Home - TechHub{% endblock
 %} {% block content %}
 <!-- Hero Section -->
-<div class="bg-gray-900 text-white">
+<section class="bg-gray-900 text-white">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
     <div class="max-w-3xl">
       <h1 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">
@@ -10,24 +10,25 @@
       <p class="text-xl md:text-2xl text-gray-300 mb-8">
         Start, switch, or advance your career with professional courses, certificates, and degrees from world-class instructors.
       </p>
-      <div class="relative max-w-xl">
-        <form action="{{ url_for('courses') }}" method="get" class="search-container mx-0">
-          <span class="search-icon text-gray-400"><i class="fas fa-search"></i></span>
-          <input
-            type="search"
-            name="q"
-            placeholder="What do you want to learn?"
-            class="search-udemy block w-full !bg-white !text-gray-900 !border-gray-300 focus:!border-gray-900 py-3"
-            value="{{ request.args.get('q', '') }}"
-          />
-          <button type="submit" class="absolute right-0 top-0 bottom-0 bg-primary text-white px-4 rounded-r-full hover:bg-primary-dark transition-colors">
-             <i class="fas fa-search"></i>
-          </button>
-        </form>
-      </div>
+      <form action="{{ url_for('courses') }}" method="get" class="relative max-w-xl">
+        <div class="search-container mx-0">
+            <span class="search-icon text-gray-400"><i class="fas fa-search"></i></span>
+            <input
+              type="search"
+              name="q"
+              placeholder="What do you want to learn?"
+              class="search-udemy block w-full !bg-white !text-gray-900 !border-gray-300 focus:!border-gray-900 py-3 pr-16"
+              value="{{ request.args.get('q', '') }}"
+              aria-label="Search courses"
+            />
+            <button type="submit" class="absolute right-0 top-0 bottom-0 bg-primary text-white px-4 rounded-r-full hover:bg-primary-dark transition-colors" aria-label="Submit search">
+               <i class="fas fa-search"></i>
+            </button>
+        </div>
+      </form>
     </div>
   </div>
-</div>
+</section>
 
 <!-- Stats Section (Optional - Simplified) -->
 <div class="bg-primary-light py-12">

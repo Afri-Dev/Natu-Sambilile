@@ -1,81 +1,71 @@
 /* Vibrant STEM-Inspired UI improvements for TechHub */
 
-/* Unified Color Palette - Light Mode */
-:root { /* Light Mode */
-  /* Primary & Accent */
-  --primary: #007BFF;         /* Standard Blue */
-  --primary-dark: #0056b3;
-  --primary-light: #cfe2ff;
+/* Tech Platform UI Colors */
+
+/* Standard Color Palette - Light Mode */
+:root {
+  /* Core & Accent */
+  --primary: #0d6efd;         /* Standard Blue */
+  --primary-dark: #0b5ed7;       /* Derived */
+  --primary-light: #cfe2ff;      /* Derived */
   --secondary: #6c757d;       /* Standard Gray */
-  --secondary-dark: #5a6268;
-  --accent: #17a2b8;          /* Info/Teal */
+  --secondary-dark: #5c636a;      /* Derived */
+  --accent: #0dcaf0;          /* Standard Cyan/Info */
 
   /* Status */
-  --success: #28a745;         /* Standard Green */
+  --success: #198754;         /* Standard Green */
   --warning: #ffc107;         /* Standard Yellow */
   --danger: #dc3545;          /* Standard Red */
   --info: var(--accent);
 
-  /* Neutrals */
-  --gray-100: #f8f9fa;
-  --gray-200: #e9ecef;
-  --gray-300: #dee2e6;
-  --gray-500: #adb5bd;
-  --gray-700: #495057;
-  --gray-900: #212529;
+  /* Backgrounds & Text */
+  --body-bg: #ffffff;         /* White */
+  --card-bg: #ffffff;         /* White */
+  --text-primary: #212529;       /* Dark Gray/Black */
+  --text-secondary: #6c757d;     /* Medium Gray */
 
-  /* Base Roles */
-  --body-bg: white;
-  --card-bg: white;
-  --text-primary: var(--gray-900);
-  --text-secondary: var(--gray-700);
-  --border-color: var(--gray-300); /* Slightly darker border */
+  /* Borders & Dividers */
+  --border-color: #dee2e6;      /* Light Gray */
 
   /* Shadows & Misc */
   --shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
   --shadow: 0 .5rem 1rem rgba(0,0,0,.15);
   --shadow-md: 0 1rem 3rem rgba(0,0,0,.175);
   --shadow-lg: 0 1.5rem 4rem rgba(0, 0, 0, 0.2);
-  --primary-rgb: 0, 123, 255; /* RGB for #007BFF */
+  --primary-rgb: 13, 110, 253;  /* RGB for #0d6efd */
 }
 
-/* Unified Color Palette - Dark Mode */
+/* Standard Color Palette - Dark Mode */
 .dark-mode {
-  /* Primary & Accent */
-  --primary: #4dabf7;          /* Lighter Blue */
-  --primary-dark: #007BFF;
-  --primary-light: #364d79;
-  --secondary: #adb5bd;        /* Lighter Gray */
-  --secondary-dark: #868e96;
-  --accent: #3bc9db;           /* Lighter Teal */
+  /* Core & Accent */
+  --primary: #4dabf7;         /* Lighter Blue */
+  --primary-dark: #0d6efd;       /* Standard Blue */
+  --primary-light: #6ea8fe;      /* Derived */
+  --secondary: #adb5bd;       /* Lighter Gray */
+  --secondary-dark: #868e96;      /* Derived */
+  --accent: #22d3ee;          /* Lighter Cyan/Info */
 
   /* Status */
-  --success: #40c057;          /* Lighter Green */
-  --warning: #fcc419;          /* Lighter Yellow */
-  --danger: #fa5252;           /* Lighter Red */
+  --success: #20c997;         /* Lighter Green */
+  --warning: #ffca2c;         /* Lighter Yellow */
+  --danger: #f0657d;          /* Lighter Red */
   --info: var(--accent);
 
-  /* Neutrals */
-  --gray-100: #343a40;
-  --gray-200: #495057;
-  --gray-300: #6c757d;
-  --gray-500: #adb5bd;
-  --gray-700: #ced4da;
-  --gray-900: #f8f9fa;
+  /* Backgrounds & Text */
+  --body-bg: #212529;         /* Dark Gray/Black */
+  --card-bg: #343a40;         /* Darker Gray */
+  --text-primary: #f8f9fa;       /* Light Gray/White */
+  --text-secondary: #adb5bd;     /* Lighter Gray */
 
-  /* Base Roles */
-  --body-bg: #121212;           /* Very Dark Gray */
-  --card-bg: #1e1e1e;           /* Slightly Lighter Dark Gray */
-  --text-primary: var(--gray-900);
-  --text-secondary: var(--gray-500);
-  --border-color: var(--gray-100); /* Subtle border */
+  /* Borders & Dividers */
+  --border-color: #495057;      /* Gray */
 
   /* Shadows & Misc */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
   --shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
   --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.35);
-  --primary-rgb: 77, 171, 247; /* RGB for #4dabf7 */
+  --primary-rgb: 77, 171, 247;  /* RGB for #4dabf7 */
 }
 
 body {
