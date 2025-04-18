@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}LearnHub{% endblock %}</title>
+    <title>{% block title %}TechHub{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
@@ -78,14 +78,14 @@
         <div class="flex items-center justify-between h-16">
           <!-- Logo -->
           <div class="flex-shrink-0 flex items-center">
-            <a href="{{ url_for('home') }}" class="text-2xl font-bold text-primary">
-              <i class="fas fa-graduation-cap mr-2"></i>LearnHub
+            <a href="{{ url_for('home') }}" class="text-2xl font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm">
+              <i class="fas fa-rocket mr-2"></i>TechHub
             </a>
           </div>
 
-          <!-- Categories (Placeholder) -->
+          <!-- Categories Link -->
           <div class="hidden sm:ml-4 sm:flex">
-            <a href="#" class="text-sm font-medium text-text-secondary hover:text-primary transition-colors px-3 py-2 rounded-md">
+            <a href="{{ url_for('courses') }}" class="text-sm font-medium text-text-secondary hover:text-primary transition-colors px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
               Categories
             </a>
           </div>
@@ -107,25 +107,25 @@
           <!-- Right Side Icons/Links -->
           <div class="flex items-center space-x-4">
             <!-- Cart (Placeholder) -->
-            <a href="#" class="hidden sm:block text-text-secondary hover:text-primary p-2 relative">
+            {# <a href="#" class="hidden sm:block text-text-secondary hover:text-primary p-2 relative">
               <i class="fas fa-shopping-cart"></i>
               <span class="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">0</span>
-            </a>
+            </a> #}
 
             {% if current_user.is_authenticated %}
             <!-- User Dropdown -->
             <div class="relative" x-data="{ open: false }">
               <button @click="open = !open" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 hover:opacity-80">
-                <img class="h-8 w-8 rounded-full bg-gray-300 border border-border-color" src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=random&color=fff" alt="{{ current_user.username }}"/>
+                <img class="h-8 w-8 rounded-full bg-gray-300 border border-border-color" src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=random&color=fff" alt="{{ current_user.username }}'s avatar"/>
               </button>
-              <div x-show="open" @click.away="open = false" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-card-bg ring-1 ring-black ring-opacity-5 focus:outline-none" style="display: none;">
+              <div x-show="open" @click.away="open = false" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-card-bg ring-1 ring-black ring-opacity-5 focus:outline-none" style="display: none;" x-trap.inert.noscroll="open" x-transition>
                 <div class="px-4 py-2 text-sm text-text-secondary border-b border-border-color">
                   Signed in as <strong class="text-text-primary">{{ current_user.username }}</strong>
                 </div>
-                <a href="{{ url_for('my_courses') }}" class="block px-4 py-2 text-sm text-text-primary hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                  <i class="fas fa-bookmark mr-2"></i> My Courses
+                <a href="{{ url_for('my_courses') }}" class="block px-4 py-2 text-sm text-text-primary hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700">
+                  <i class="fas fa-bookmark mr-2"></i> My Learning
                 </a>
-                <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-text-primary hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-text-primary hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700">
                   <i class="fas fa-sign-out-alt mr-2"></i> Sign out
                 </a>
               </div>
@@ -143,7 +143,7 @@
             {% endif %}
 
             <!-- Dark Mode Toggle -->
-            <div class="dark-mode-toggle" id="darkModeToggle" title="Toggle dark mode">
+            <div class="dark-mode-toggle focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 rounded-full" id="darkModeToggle" title="Toggle dark mode" tabindex="0">
               <span class="sr-only">Toggle dark mode</span>
             </div>
 
@@ -172,7 +172,7 @@
           <a href="{{ url_for('home') }}" class="block px-3 py-2 rounded-md text-base font-medium {% if request.endpoint == 'home' %}text-primary bg-primary-light{% else %}text-text-primary hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}">
             Home
           </a>
-          <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-text-primary hover:bg-gray-100 dark:hover:bg-gray-700">
+          <a href="{{ url_for('courses') }}" class="block px-3 py-2 rounded-md text-base font-medium text-text-primary hover:bg-gray-100 dark:hover:bg-gray-700">
             Categories
           </a>
           {% if current_user.is_authenticated %}
@@ -188,7 +188,7 @@
         <div class="pt-4 pb-3 border-t border-border-color px-5">
           <div class="flex items-center">
             <div class="flex-shrink-0">
-              <img class="h-10 w-10 rounded-full bg-gray-300 border border-border-color" src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=random&color=fff" alt="{{ current_user.username }}"/>
+              <img class="h-10 w-10 rounded-full bg-gray-300 border border-border-color" src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=random&color=fff" alt="{{ current_user.username }}'s avatar"/>
             </div>
             <div class="ml-3">
               <div class="text-base font-medium text-text-primary">{{ current_user.username }}</div>
@@ -235,52 +235,52 @@
     {% endwith %}
 
     <!-- Main Content -->
-    <main class="pb-16">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
       {% block content %}{% endblock %}
     </main>
     
     <!-- Footer (Basic Placeholder) -->
-    <footer class="bg-gray-900 text-gray-300 mt-16">
+    <footer class="bg-primary text-gray-100 mt-16">
       <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Company</h3>
+            <h3 class="text-sm font-semibold text-gray-300 tracking-wider uppercase">Company</h3>
             <ul class="mt-4 space-y-4">
-              <li><a href="#" class="text-base text-gray-300 hover:text-white">About</a></li>
-              <li><a href="#" class="text-base text-gray-300 hover:text-white">Careers</a></li>
-              <li><a href="#" class="text-base text-gray-300 hover:text-white">Blog</a></li>
+              <li><a href="#" class="text-base text-gray-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-sm">About</a></li>
+              <li><a href="#" class="text-base text-gray-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-sm">Careers</a></li>
+              <li><a href="#" class="text-base text-gray-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-sm">Blog</a></li>
             </ul>
           </div>
           <div>
-            <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Community</h3>
+            <h3 class="text-sm font-semibold text-gray-300 tracking-wider uppercase">Community</h3>
             <ul class="mt-4 space-y-4">
-              <li><a href="#" class="text-base text-gray-300 hover:text-white">Learners</a></li>
-              <li><a href="#" class="text-base text-gray-300 hover:text-white">Partners</a></li>
-              <li><a href="#" class="text-base text-gray-300 hover:text-white">Affiliates</a></li>
+              <li><a href="#" class="text-base text-gray-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-sm">Learners</a></li>
+              <li><a href="#" class="text-base text-gray-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-sm">Partners</a></li>
+              <li><a href="#" class="text-base text-gray-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-sm">Affiliates</a></li>
             </ul>
           </div>
           <div>
-            <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Support</h3>
+            <h3 class="text-sm font-semibold text-gray-300 tracking-wider uppercase">Support</h3>
             <ul class="mt-4 space-y-4">
-              <li><a href="#" class="text-base text-gray-300 hover:text-white">Help Center</a></li>
-              <li><a href="#" class="text-base text-gray-300 hover:text-white">Terms</a></li>
-              <li><a href="#" class="text-base text-gray-300 hover:text-white">Privacy Policy</a></li>
+              <li><a href="#" class="text-base text-gray-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-sm">Help Center</a></li>
+              <li><a href="#" class="text-base text-gray-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-sm">Terms</a></li>
+              <li><a href="#" class="text-base text-gray-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-sm">Privacy Policy</a></li>
             </ul>
           </div>
           <div>
-            <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">LearnHub</h3>
-             <p class="mt-4 text-base text-gray-300">Teaching the world online.</p>
+            <h3 class="text-sm font-semibold text-gray-300 tracking-wider uppercase">TechHub</h3>
+             <p class="mt-4 text-base text-gray-100">Teaching the world online.</p>
           </div>
         </div>
-        <div class="mt-8 border-t border-gray-700 pt-8 md:flex md:items-center md:justify-between">
+        <div class="mt-8 border-t border-gray-500 pt-8 md:flex md:items-center md:justify-between">
           <div class="flex space-x-6 md:order-2">
-            <a href="#" class="text-gray-400 hover:text-gray-300"><i class="fab fa-facebook"></i></a>
-            <a href="#" class="text-gray-400 hover:text-gray-300"><i class="fab fa-instagram"></i></a>
-            <a href="#" class="text-gray-400 hover:text-gray-300"><i class="fab fa-twitter"></i></a>
-            <a href="#" class="text-gray-400 hover:text-gray-300"><i class="fab fa-github"></i></a>
+            <a href="#" class="text-gray-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-full"><i class="fab fa-facebook"></i></a>
+            <a href="#" class="text-gray-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-full"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="text-gray-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-full"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="text-gray-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-white rounded-full"><i class="fab fa-github"></i></a>
           </div>
-          <p class="mt-8 text-base text-gray-400 md:mt-0 md:order-1">
-            &copy; {{ now().year }} LearnHub, Inc. All rights reserved.
+          <p class="mt-8 text-base text-gray-300 md:mt-0 md:order-1">
+            &copy; {{ now().year }} TechHub, Inc. All rights reserved.
           </p>
         </div>
       </div>

@@ -274,9 +274,17 @@ def unenroll(course_id):
 @app.route('/my-courses')
 @login_required
 def my_courses():
-    # Eager load the 'course' relationship for each enrollment
-    enrollments = Enrollment.query.options(joinedload(Enrollment.course)).filter_by(user_id=current_user.id).all()
-    return render_template('my_courses.html', enrollments=enrollments)
+    # Eager load course and its lessons for each enrollment
+    enrollments = Enrollment.query.options(
+        joinedload(Enrollment.course).joinedload(Course.lessons)
+    ).filter_by(user_id=current_user.id).all()
+    
+    # Also fetch completed lesson IDs for the current user to pass to template
+    completed_lesson_ids = {comp.lesson_id for comp in LessonCompletion.query.filter_by(user_id=current_user.id).all()}
+    
+    return render_template('my_courses.html', 
+                         enrollments=enrollments,
+                         completed_lesson_ids=completed_lesson_ids)
 
 @app.route('/lesson/<int:lesson_id>')
 @login_required
@@ -289,7 +297,7 @@ def view_lesson(lesson_id):
     enrollment = Enrollment.query.filter_by(
         user_id=current_user.id,
         course_id=course.id
-    ).first_or_404()
+    ).first_or_404() # Ensures user is enrolled to view lesson
     
     # Get previous and next lessons
     prev_lesson = Lesson.query.filter(
@@ -313,7 +321,8 @@ def view_lesson(lesson_id):
                          course=course,
                          prev_lesson=prev_lesson,
                          next_lesson=next_lesson,
-                         lesson_completed=lesson_completed)
+                         lesson_completed=lesson_completed,
+                         enrollment=enrollment) # Pass enrollment to template
 
 @app.route('/lesson/<int:lesson_id>/complete', methods=['POST'])
 @login_required
@@ -557,7 +566,8 @@ def admin_delete_course(course_id):
 def add_sample_courses():
     # Create admin user if none exists
     admin_email = 'bupechiyana11@gmail.com'
-    if not User.query.filter_by(email=admin_email).first():
+    admin = User.query.filter_by(email=admin_email).first()
+    if not admin:
         admin = User(
             username='Bupe Chiyana',
             email=admin_email,
@@ -565,411 +575,137 @@ def add_sample_courses():
         )
         admin.set_password('12345qwert')
         db.session.add(admin)
-        db.session.commit()
+        # Commit admin user separately
+        try:
+            db.session.commit()
+            print("Admin user created/verified.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error adding admin user: {e}")
+            return # Stop if admin can't be added
 
-    # Sample courses
-    python_course = Course(
-        title='Introduction to Python',
-        description='Learn Python programming from scratch',
-        semantic_tags='programming,python,beginner',
-        user_id=1,
-        max_students=50,
-        duration_weeks=8
-    )
-    
-    web_dev_course = Course(
-        title='Web Development Fundamentals',
-        description='Master HTML, CSS, and JavaScript',
-        semantic_tags='web,html,css,javascript',
-        user_id=1,
-        max_students=40,
-        duration_weeks=10
-    )
-    
-    db.session.add(python_course)
-    db.session.add(web_dev_course)
-    db.session.commit()
-
-    # Add new tech courses
-    cloud_arch = Course(
-        title='Cloud Architecture and Design',
-        description='Learn to design scalable and resilient cloud architectures using AWS, Azure, and GCP.',
-        semantic_tags='cloud,aws,azure,gcp,architecture,infrastructure',
-        max_students=40,
-        duration_weeks=10
-    )
-    db.session.add(cloud_arch)
-
-    cybersecurity = Course(
-        title='Advanced Cybersecurity',
-        description='Master cybersecurity concepts, penetration testing, and security architecture.',
-        semantic_tags='security,cybersecurity,pentest,networking,encryption',
-        max_students=35,
-        duration_weeks=12
-    )
-    db.session.add(cybersecurity)
-
-    data_engineering = Course(
-        title='Data Engineering Pipeline Design',
-        description='Build robust data pipelines using modern tools and best practices.',
-        semantic_tags='data,etl,python,sql,apache,spark,airflow',
-        max_students=45,
-        duration_weeks=8
-    )
-    db.session.add(data_engineering)
-
-    mobile_dev = Course(
-        title='Cross-Platform Mobile Development',
-        description='Create mobile apps for iOS and Android using React Native and Flutter.',
-        semantic_tags='mobile,react-native,flutter,ios,android,javascript',
-        max_students=50,
-        duration_weeks=10
-    )
-    db.session.add(mobile_dev)
-
-    devops = Course(
-        title='DevOps and CI/CD',
-        description='Implement DevOps practices and build CI/CD pipelines using modern tools.',
-        semantic_tags='devops,ci-cd,jenkins,docker,kubernetes,git',
-        max_students=40,
-        duration_weeks=8
-    )
-    db.session.add(devops)
-
-    ai_ml = Course(
-        title='AI and Machine Learning Engineering',
-        description='Design and deploy production-ready AI/ML systems at scale.',
-        semantic_tags='ai,ml,python,tensorflow,pytorch,mlops',
-        max_students=35,
-        duration_weeks=14
-    )
-    db.session.add(ai_ml)
-
-    blockchain = Course(
-        title='Blockchain Development',
-        description='Build decentralized applications and smart contracts on Ethereum and other platforms.',
-        semantic_tags='blockchain,ethereum,solidity,web3,smart-contracts',
-        max_students=30,
-        duration_weeks=10
-    )
-    db.session.add(blockchain)
-
-    microservices = Course(
-        title='Microservices Architecture',
-        description='Design and implement scalable microservices architectures using modern tools.',
-        semantic_tags='microservices,architecture,docker,kubernetes,api,spring',
-        max_students=45,
-        duration_weeks=12
-    )
-    db.session.add(microservices)
-
-    db.session.commit()
-
-    # Add lessons for Python course
-    python_lessons = [
-        {
-            'title': 'Getting Started with Python',
-            'content': '''
-# Introduction to Python
-
-Python is a high-level, interpreted programming language known for its simplicity and readability.
-
-## In this lesson, you'll learn:
-- What Python is and why it's popular
-- How to install Python on your computer
-- Writing your first Python program
-- Basic Python syntax
-
-## Your First Python Program
-
-```python
-print("Hello, World!")
-```
-
-This simple program demonstrates the basic syntax of Python. Let's break it down:
-- `print()` is a built-in function
-- The text inside the parentheses is called a "string"
-- Strings can be enclosed in single or double quotes
-''',
-            'lesson_number': 1,
-            'quiz': {
-                'title': 'Python Basics Quiz',
-                'questions': [
-                    {
-                        'text': 'What function is used to output text in Python?',
-                        'options': [
-                            {'text': 'print()', 'correct': True},
-                            {'text': 'echo()', 'correct': False},
-                            {'text': 'console.log()', 'correct': False},
-                            {'text': 'write()', 'correct': False}
-                        ]
-                    },
-                    {
-                        'text': 'Which of these is a valid string in Python?',
-                        'options': [
-                            {'text': '"Hello World"', 'correct': True},
-                            {'text': '<Hello World>', 'correct': False},
-                            {'text': '[Hello World]', 'correct': False},
-                            {'text': '{Hello World}', 'correct': False}
-                        ]
-                    }
-                ]
-            }
-        },
-        {
-            'title': 'Variables and Data Types',
-            'content': '''
-# Variables and Data Types in Python
-
-Variables are containers for storing data values. Python has several data types:
-
-## Basic Data Types:
-- Strings (text): `name = "John"`
-- Integers (whole numbers): `age = 25`
-- Floats (decimal numbers): `height = 1.75`
-- Booleans (True/False): `is_student = True`
-
-## Example:
-```python
-name = "Alice"
-age = 30
-height = 1.65
-is_student = True
-
-print(f"Name: {name}")
-print(f"Age: {age}")
-print(f"Height: {height}m")
-print(f"Student: {is_student}")
-```
-''',
-            'lesson_number': 2,
-            'quiz': {
-                'title': 'Data Types Quiz',
-                'questions': [
-                    {
-                        'text': 'Which of these is a valid integer in Python?',
-                        'options': [
-                            {'text': '42', 'correct': True},
-                            {'text': '"42"', 'correct': False},
-                            {'text': '42.0', 'correct': False},
-                            {'text': 'int(42)', 'correct': False}
-                        ]
-                    },
-                    {
-                        'text': 'What is the correct way to create a boolean variable?',
-                        'options': [
-                            {'text': 'is_valid = True', 'correct': True},
-                            {'text': 'is_valid = "True"', 'correct': False},
-                            {'text': 'is_valid = 1', 'correct': False},
-                            {'text': 'is_valid = "yes"', 'correct': False}
-                        ]
-                    }
-                ]
-            }
-        }
+    # --- Create Courses ---
+    courses_data = [
+        {'title': 'Introduction to Python', 'description': 'Learn Python programming from scratch', 'semantic_tags': 'programming,python,beginner', 'max_students': 50, 'duration_weeks': 8},
+        {'title': 'Web Development Fundamentals', 'description': 'Master HTML, CSS, and JavaScript', 'semantic_tags': 'web,html,css,javascript', 'max_students': 40, 'duration_weeks': 10},
+        {'title': 'Cloud Architecture and Design', 'description': 'Learn to design scalable and resilient cloud architectures using AWS, Azure, and GCP.', 'semantic_tags': 'cloud,aws,azure,gcp,architecture,infrastructure', 'max_students': 40, 'duration_weeks': 10},
+        {'title': 'Advanced Cybersecurity', 'description': 'Master cybersecurity concepts, penetration testing, and security architecture.', 'semantic_tags': 'security,cybersecurity,pentest,networking,encryption', 'max_students': 35, 'duration_weeks': 12},
+        {'title': 'Data Engineering Pipeline Design', 'description': 'Build robust data pipelines using modern tools and best practices.', 'semantic_tags': 'data,etl,python,sql,apache,spark,airflow', 'max_students': 45, 'duration_weeks': 8},
+        {'title': 'Cross-Platform Mobile Development', 'description': 'Create mobile apps for iOS and Android using React Native and Flutter.', 'semantic_tags': 'mobile,react-native,flutter,ios,android,javascript', 'max_students': 50, 'duration_weeks': 10},
+        {'title': 'DevOps and CI/CD', 'description': 'Implement DevOps practices and build CI/CD pipelines using modern tools.', 'semantic_tags': 'devops,ci-cd,jenkins,docker,kubernetes,git', 'max_students': 40, 'duration_weeks': 8},
+        {'title': 'AI and Machine Learning Engineering', 'description': 'Design and deploy production-ready AI/ML systems at scale.', 'semantic_tags': 'ai,ml,python,tensorflow,pytorch,mlops', 'max_students': 35, 'duration_weeks': 14},
+        {'title': 'Blockchain Development', 'description': 'Build decentralized applications and smart contracts on Ethereum and other platforms.', 'semantic_tags': 'blockchain,ethereum,solidity,web3,smart-contracts', 'max_students': 30, 'duration_weeks': 10},
+        {'title': 'Microservices Architecture', 'description': 'Design and implement scalable microservices architectures using modern tools.', 'semantic_tags': 'microservices,architecture,docker,kubernetes,api,spring', 'max_students': 45, 'duration_weeks': 12}
     ]
 
-    # Add lessons for Web Development course
-    web_lessons = [
-        {
-            'title': 'HTML Fundamentals',
-            'content': '''
-# Introduction to HTML
+    created_course_objects = []
+    admin_user_id = admin.id if admin else 1 # Fallback to 1
 
-HTML (HyperText Markup Language) is the standard markup language for creating web pages.
-
-## Basic HTML Structure:
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My First Webpage</title>
-</head>
-<body>
-    <h1>Welcome to Web Development</h1>
-    <p>This is a paragraph.</p>
-</body>
-</html>
-```
-
-## Common HTML Elements:
-- Headings: `<h1>` to `<h6>`
-- Paragraphs: `<p>`
-- Links: `<a href="url">link text</a>`
-- Images: `<img src="image.jpg" alt="description">`
-''',
-            'lesson_number': 1,
-            'quiz': {
-                'title': 'HTML Basics Quiz',
-                'questions': [
-                    {
-                        'text': 'Which tag is used for the largest heading in HTML?',
-                        'options': [
-                            {'text': '<h1>', 'correct': True},
-                            {'text': '<header>', 'correct': False},
-                            {'text': '<heading>', 'correct': False},
-                            {'text': '<h6>', 'correct': False}
-                        ]
-                    },
-                    {
-                        'text': 'What does HTML stand for?',
-                        'options': [
-                            {'text': 'HyperText Markup Language', 'correct': True},
-                            {'text': 'High-Level Text Language', 'correct': False},
-                            {'text': 'HyperTransfer Markup Language', 'correct': False},
-                            {'text': 'Home Tool Markup Language', 'correct': False}
-                        ]
-                    }
-                ]
-            }
-        },
-        {
-            'title': 'CSS Styling',
-            'content': '''
-# Introduction to CSS
-
-CSS (Cascading Style Sheets) is used to style and layout web pages.
-
-## Basic CSS Syntax:
-```css
-selector {
-    property: value;
-}
-```
-
-## Example:
-```css
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-}
-
-h1 {
-    color: #333;
-    font-size: 24px;
-}
-
-.highlight {
-    background-color: yellow;
-}
-```
-
-## Ways to Add CSS:
-1. Inline CSS
-2. Internal CSS
-3. External CSS
-''',
-            'lesson_number': 2,
-            'quiz': {
-                'title': 'CSS Fundamentals Quiz',
-                'questions': [
-                    {
-                        'text': 'Which property is used to change text color in CSS?',
-                        'options': [
-                            {'text': 'color', 'correct': True},
-                            {'text': 'text-color', 'correct': False},
-                            {'text': 'font-color', 'correct': False},
-                            {'text': 'text-style', 'correct': False}
-                        ]
-                    },
-                    {
-                        'text': 'What symbol is used to select elements by their class in CSS?',
-                        'options': [
-                            {'text': '.', 'correct': True},
-                            {'text': '#', 'correct': False},
-                            {'text': '@', 'correct': False},
-                            {'text': '*', 'correct': False}
-                        ]
-                    }
-                ]
-            }
-        }
-    ]
-
-    # Add Python lessons
-    for lesson_data in python_lessons:
-        lesson = Lesson(
-            title=lesson_data['title'],
-            content=lesson_data['content'],
-            lesson_number=lesson_data['lesson_number'],
-            course_id=python_course.id
-        )
-        db.session.add(lesson)
-        db.session.commit()
-
-        # Add quiz for the lesson
-        quiz_data = lesson_data['quiz']
-        quiz = Quiz(
-            title=quiz_data['title'],
-            lesson_id=lesson.id
-        )
-        db.session.add(quiz)
-        db.session.commit()
-
-        # Add questions and options
-        for q_data in quiz_data['questions']:
-            question = QuizQuestion(
-                quiz_id=quiz.id,
-                question_text=q_data['text']
+    print("Checking and creating courses...")
+    for course_data in courses_data:
+        existing_course = Course.query.filter_by(title=course_data['title']).first()
+        if not existing_course:
+            course = Course(
+                title=course_data['title'],
+                description=course_data['description'],
+                semantic_tags=course_data['semantic_tags'],
+                user_id=admin_user_id,
+                max_students=course_data['max_students'],
+                duration_weeks=course_data['duration_weeks']
             )
-            db.session.add(question)
-            db.session.commit()
+            db.session.add(course)
+            created_course_objects.append(course) # Add the object
+            # print(f"  Added course '{course.title}' to session.") # Keep console cleaner
+        else:
+             created_course_objects.append(existing_course)
+             # print(f"  Course '{course_data['title']}' already exists.")
 
-            for opt_data in q_data['options']:
-                option = QuizOption(
-                    quiz_question_id=question.id,
-                    option_text=opt_data['text'],
-                    is_correct=opt_data['correct']
-                )
-                db.session.add(option)
-
-    # Add Web Development lessons
-    for lesson_data in web_lessons:
-        lesson = Lesson(
-            title=lesson_data['title'],
-            content=lesson_data['content'],
-            lesson_number=lesson_data['lesson_number'],
-            course_id=web_dev_course.id
-        )
-        db.session.add(lesson)
+    try:
         db.session.commit()
+        print(f"Committed course additions/checks.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error committing courses: {e}")
+        return
 
-        # Add quiz for the lesson
-        quiz_data = lesson_data['quiz']
-        quiz = Quiz(
-            title=quiz_data['title'],
-            lesson_id=lesson.id
-        )
-        db.session.add(quiz)
-        db.session.commit()
+    # --- Add Lessons and Quizzes for Each Course ---
+    print("\nChecking and adding lessons/quizzes...")
+    for course in created_course_objects:
+        print(f"Processing course: {course.title} (ID: {course.id})")
+        try:
+            # Check if course already has 10 lessons
+            lesson_count = Lesson.query.filter_by(course_id=course.id).count()
+            if lesson_count >= 10:
+                print(f"  Skipping: Course already has {lesson_count} lessons.")
+                continue
 
-        # Add questions and options
-        for q_data in quiz_data['questions']:
-            question = QuizQuestion(
-                quiz_id=quiz.id,
-                question_text=q_data['text']
-            )
-            db.session.add(question)
-            db.session.commit()
-
-            for opt_data in q_data['options']:
-                option = QuizOption(
-                    quiz_question_id=question.id,
-                    option_text=opt_data['text'],
-                    is_correct=opt_data['correct']
+            lessons_added_this_run = 0
+            for i in range(1, 11):
+                # Create Lesson
+                lesson = Lesson(
+                    title=f"{course.title} - Lesson {i}",
+                    content=f"Placeholder content for Lesson {i} of {course.title}.\\n\\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.",
+                    lesson_number=i,
+                    course_id=course.id
                 )
-                db.session.add(option)
+                db.session.add(lesson)
+                db.session.flush() # Need lesson ID for Quiz FK
 
-    db.session.commit()
+                # Create Quiz for the Lesson
+                quiz = Quiz(
+                    title=f"Quiz for Lesson {i}",
+                    lesson_id=lesson.id
+                )
+                db.session.add(quiz)
+                db.session.flush() # Need quiz ID for Question FK
+
+                # Create Quiz Questions
+                for q_num in range(1, 3):
+                    question = QuizQuestion(
+                        quiz_id=quiz.id,
+                        question_text=f"Placeholder Question {q_num} for Lesson {i} Quiz?"
+                    )
+                    db.session.add(question)
+                    db.session.flush() # Need question ID for Option FK
+
+                    # Create Quiz Options
+                    for opt_num in range(1, 5):
+                        option = QuizOption(
+                            quiz_question_id=question.id,
+                            option_text=f"Option {opt_num}",
+                            is_correct=(opt_num == 1) # First option is correct
+                        )
+                        db.session.add(option)
+                lessons_added_this_run += 1 # Increment after successful lesson/quiz/q/o creation
+
+            # Commit after all lessons/quizzes for this specific course are added
+            db.session.commit()
+            print(f"  Successfully added {lessons_added_this_run} lessons/quizzes for course ID {course.id}.")
+
+        except Exception as e:
+            # Rollback changes for the current course if an error occurred
+            db.session.rollback()
+            print(f"  Error adding lessons/quizzes for course ID {course.id}: {e}")
+            # Continue to the next course even if one fails
+            continue
+
+    print("\nFinished adding sample data.")
 
 if __name__ == '__main__':
     with app.app_context():
-        # Ensure tables are created if they don't exist (for local dev)
-        # For production, use migrations (e.g., Flask-Migrate)
-        # db.drop_all() # Removed - Destructive and inefficient for dev/prod
+        print("Creating database tables if they don't exist...")
         db.create_all()
-        # Add sample courses - Removed from startup
-        # Consider a separate seed script or CLI command if needed
-        # add_sample_courses() 
+        print("Database tables checked/created.")
+        
+        # --- Optional: Seed Data --- 
+        SEED_DATA = False # <-- CHANGE THIS TO True TO SEED
+        
+        if SEED_DATA:
+            print("SEED_DATA is True. Attempting to add sample data...")
+            add_sample_courses()
+        else:
+            print("SEED_DATA is False. Skipping add_sample_courses.")
+        # --- End Optional Seed Data ---
+            
+    print("Starting Flask development server...")
     app.run(debug=True)

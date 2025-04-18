@@ -1,4 +1,4 @@
-// UI Enhancement Scripts for LearnHub
+// UI Enhancement Scripts for TechHub
 
 // Dark mode functionality
 function initDarkMode() {

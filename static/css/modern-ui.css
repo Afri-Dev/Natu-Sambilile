@@ -1,79 +1,81 @@
-/* STEM-Inspired UI improvements for LearnHub */
+/* Vibrant STEM-Inspired UI improvements for TechHub */
 
-/* Custom variables - Light Mode */
-:root {
-  /* 1. Primary Colors (Tech-Professional Feel) */
-  --primary: #0066CC; /* Science Blue */
-  --primary-dark: #0052A3; /* Darker Science Blue */
-  --primary-light: #E6F0FF; /* Lighter Science Blue */
-  --info: #00B7C2; /* Teal / Cyan */
-  --royal-blue: #4169E1; /* Royal Blue (Footer/Toolbar?) */
+/* Unified Color Palette - Light Mode */
+:root { /* Light Mode */
+  /* Primary & Accent */
+  --primary: #007BFF;         /* Standard Blue */
+  --primary-dark: #0056b3;
+  --primary-light: #cfe2ff;
+  --secondary: #6c757d;       /* Standard Gray */
+  --secondary-dark: #5a6268;
+  --accent: #17a2b8;          /* Info/Teal */
 
-  /* 2. Secondary / Accent Colors */
-  --secondary: #2ECC71; /* Emerald Green */
-  --secondary-dark: #25a25a;
-  --accent: #A259FF; /* Electric Purple */
-  --accent-dark: #8e44ad;
-  --success: var(--secondary);
-  --danger: #e74c3c; /* Standard Red */
-  --warning: #F1C40F; /* Amber / Yellow */
+  /* Status */
+  --success: #28a745;         /* Standard Green */
+  --warning: #ffc107;         /* Standard Yellow */
+  --danger: #dc3545;          /* Standard Red */
+  --info: var(--accent);
 
-  /* 3. Neutral Base */
-  --gray-100: #F8F9FA; /* Background Light */
-  --gray-200: #DDDDDD; /* Soft Gray Border */
-  --gray-300: #CCCCCC;
-  --gray-500: #888888;
-  --gray-700: #666666; /* Medium Gray for secondary text */
-  --gray-900: #333333; /* Text / Font Dark Gray */
-  
+  /* Neutrals */
+  --gray-100: #f8f9fa;
+  --gray-200: #e9ecef;
+  --gray-300: #dee2e6;
+  --gray-500: #adb5bd;
+  --gray-700: #495057;
+  --gray-900: #212529;
+
   /* Base Roles */
-  --body-bg: var(--gray-100);
-  --card-bg: #FFFFFF; /* White Elements */
+  --body-bg: white;
+  --card-bg: white;
   --text-primary: var(--gray-900);
   --text-secondary: var(--gray-700);
-  --border-color: var(--gray-200);
+  --border-color: var(--gray-300); /* Slightly darker border */
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 16px 0 rgba(0, 0, 0, 0.1);
+  /* Shadows & Misc */
+  --shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
+  --shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+  --shadow-md: 0 1rem 3rem rgba(0,0,0,.175);
+  --shadow-lg: 0 1.5rem 4rem rgba(0, 0, 0, 0.2);
+  --primary-rgb: 0, 123, 255; /* RGB for #007BFF */
 }
 
-/* Dark mode variables */
+/* Unified Color Palette - Dark Mode */
 .dark-mode {
-  --primary: #3399FF; /* Lighter Science Blue */
-  --primary-dark: #0066CC;
-  --primary-light: #003366;
-  --info: #2EE5D0; /* Lighter Teal / Cyan */
-  --royal-blue: #5F81E5;
+  /* Primary & Accent */
+  --primary: #4dabf7;          /* Lighter Blue */
+  --primary-dark: #007BFF;
+  --primary-light: #364d79;
+  --secondary: #adb5bd;        /* Lighter Gray */
+  --secondary-dark: #868e96;
+  --accent: #3bc9db;           /* Lighter Teal */
 
-  --secondary: #58D68D; /* Lighter Emerald Green */
-  --secondary-dark: #2ECC71;
-  --accent: #C390FF; /* Lighter Electric Purple */
-  --accent-dark: #A259FF;
-  --success: var(--secondary);
-  --danger: #f1948a; /* Lighter Red */
-  --warning: #f5c75f; /* Lighter Amber */
+  /* Status */
+  --success: #40c057;          /* Lighter Green */
+  --warning: #fcc419;          /* Lighter Yellow */
+  --danger: #fa5252;           /* Lighter Red */
+  --info: var(--accent);
 
-  --gray-100: #2C2C2C;
-  --gray-200: #444444; /* Darker Border */
-  --gray-300: #555555;
-  --gray-500: #AAAAAA; /* Lighter gray for secondary text */
-  --gray-700: #CCCCCC; /* Lighter text */
-  --gray-900: #F8F9FA; /* Light text (almost white) */
+  /* Neutrals */
+  --gray-100: #343a40;
+  --gray-200: #495057;
+  --gray-300: #6c757d;
+  --gray-500: #adb5bd;
+  --gray-700: #ced4da;
+  --gray-900: #f8f9fa;
 
-  --body-bg: #1A1A1A; /* Very Dark Background */
-  --card-bg: #252525; /* Dark Card Background */
+  /* Base Roles */
+  --body-bg: #121212;           /* Very Dark Gray */
+  --card-bg: #1e1e1e;           /* Slightly Lighter Dark Gray */
   --text-primary: var(--gray-900);
   --text-secondary: var(--gray-500);
-  --border-color: var(--gray-200);
+  --border-color: var(--gray-100); /* Subtle border */
 
-  /* Dark Shadows */
-  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.15);
-  --shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 5px 10px 0 rgba(0, 0, 0, 0.25);
-  --shadow-lg: 0 10px 20px 0 rgba(0, 0, 0, 0.25);
+  /* Shadows & Misc */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.35);
+  --primary-rgb: 77, 171, 247; /* RGB for #4dabf7 */
 }
 
 body {
@@ -105,14 +107,27 @@ body {
   /* Placeholder for image */
   height: 150px;
   background-color: var(--gray-200);
+  /* Add subtle pattern */
+  background-image: linear-gradient(45deg, rgba(0,0,0,0.03) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.03) 75%),
+                    linear-gradient(-45deg, rgba(0,0,0,0.03) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.03) 75%);
+  background-size: 20px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--gray-500);
+  position: relative;
+  overflow: hidden;
+}
+
+.course-card-udemy .card-image i {
+  font-size: 2.5rem; /* Slightly smaller icon */
+  opacity: 0.6;
 }
 
 .dark-mode .course-card-udemy .card-image {
-  background-color: #3a3b3c;
+  background-color: var(--gray-200);
+  background-image: linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.05) 75%),
+                    linear-gradient(-45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.05) 75%);
 }
 
 .course-card-udemy .card-content {
@@ -152,18 +167,25 @@ body {
 }
 
 .course-card-udemy .card-rating .stars {
-  color: #f59e0b; /* Star color */
+  color: var(--warning);
   margin-right: 0.25rem;
 }
 
 .course-card-udemy .card-rating .rating-value {
   font-weight: 700;
-  color: #b4690e; /* Darker yellow */
+  color: var(--warning);
   margin-right: 0.25rem;
 }
 
+/* Style for placeholder text within cards */
+.card-placeholder {
+  font-style: italic;
+  opacity: 0.7;
+  font-size: 0.75rem; /* Smaller size for placeholders */
+}
+
 .dark-mode .course-card-udemy .card-rating .rating-value {
-  color: #facc15; /* Lighter yellow */
+  color: var(--warning);
 }
 
 .course-card-udemy .card-price {
@@ -230,6 +252,13 @@ body {
 
 .dark-mode .btn-udemy-secondary:hover {
   background-color: var(--card-bg);
+}
+
+/* Focus states for buttons */
+.btn-udemy:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 0, 123, 255), 0.5); /* Use RGB variable if set, else fallback */
 }
 
 /* Remove old button ripple effect if sticking to Udemy style */
@@ -366,15 +395,15 @@ body {
 }
 
 .dark-mode ::-webkit-scrollbar-track {
-  background: #2d2d3f;
+  background: var(--card-bg);
 }
 
 .dark-mode ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: var(--gray-300);
 }
 
 .dark-mode ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: var(--gray-500);
 }
 
 /* Animations (keep or adjust) */
@@ -428,7 +457,7 @@ body {
   height: 24px;
   position: relative;
   border-radius: 24px;
-  background-color: #6366f1;
+  background-color: var(--primary);
   transition: background-color 0.3s ease;
   margin-left: 1rem;
 }
@@ -447,7 +476,7 @@ body {
 }
 
 .dark-mode .dark-mode-toggle {
-  background-color: #4b5563;
+  background-color: var(--secondary);
 }
 
 .dark-mode .dark-mode-toggle::after {

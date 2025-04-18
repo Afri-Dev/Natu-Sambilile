@@ -1,19 +1,21 @@
-{% extends "base.html" %} {% block title %}Login - LearnHub{% endblock %}
+{% extends "base.html" %} {% block title %}Login - TechHub{% endblock %}
 
 {% block content %}
 <div class="max-w-md mx-auto mt-12 mb-24 px-4">
   <h2 class="text-2xl font-bold text-center text-text-primary mb-6">
-    Log in to your LearnHub account
+    Log in to your TechHub account
   </h2>
 
-  <div class="bg-card-bg p-8 border border-border-color rounded shadow-md">
+  <div class="bg-card-bg p-8 border border-border-color rounded-lg shadow-md">
     <form class="space-y-6" method="POST" action="{{ url_for('login') }}">
-      {% with messages = get_flashed_messages(category_filter=['error']) %}
+      {# Flash message handling #}
+      {% with messages = get_flashed_messages(category_filter=['error', 'warning', 'info']) %}
         {% if messages %}
           {% for message in messages %}
-          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span class="block sm:inline">{{ message }}</span>
-          </div>
+            {# Use existing base.html flash styling by passing category #}
+            {% with category = get_flashed_messages(with_categories=true) | selectattr(1, 'equalto', message) | map(attribute=0) | first %}
+              {{ self.render_flash(message, category|default('info')) }}
+            {% endwith %}
           {% endfor %}
         {% endif %}
       {% endwith %}
@@ -27,7 +29,7 @@
           name="username"
           type="text"
           required
-          class="appearance-none block w-full px-3 py-2 border border-border-color rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-body-bg text-text-primary"
+          class="appearance-none block w-full px-4 py-2 border border-border-color rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm bg-body-bg dark:bg-gray-700 text-text-primary dark:text-text-primary transition duration-150 ease-in-out"
           placeholder="Enter your username"
         />
       </div>
@@ -41,7 +43,7 @@
           name="password"
           type="password"
           required
-          class="appearance-none block w-full px-3 py-2 border border-border-color rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-body-bg text-text-primary"
+          class="appearance-none block w-full px-4 py-2 border border-border-color rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm bg-body-bg dark:bg-gray-700 text-text-primary dark:text-text-primary transition duration-150 ease-in-out"
           placeholder="Enter your password"
         />
       </div>
@@ -91,3 +93,15 @@
   </div>
 </div>
 {% endblock %}
+
+{# Macro to render flash messages consistently #}
+{% macro render_flash(message, category) %}
+<div class="p-4 mb-4 rounded-md shadow-sm border {% if category == 'error' %} bg-red-50 border-red-400 text-red-700 dark:bg-red-900 dark:border-red-700 dark:text-red-200 {% elif category == 'success' %} bg-green-50 border-green-400 text-green-700 dark:bg-green-900 dark:border-green-700 dark:text-green-200 {% else %} bg-yellow-50 border-yellow-400 text-yellow-700 dark:bg-yellow-900 dark:border-yellow-700 dark:text-yellow-200 {% endif %}" role="alert">
+  <div class="flex items-center">
+    <div class="flex-shrink-0">
+      <i class="fas {% if category == 'error' %}fa-times-circle{% elif category == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %} mr-2"></i>
+    </div>
+    <p class="text-sm font-medium">{{ message }}</p>
+  </div>
+</div>
+{% endmacro %}
