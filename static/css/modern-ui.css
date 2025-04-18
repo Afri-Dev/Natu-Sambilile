@@ -1,0 +1,455 @@
+/* STEM-Inspired UI improvements for LearnHub */
+
+/* Custom variables - Light Mode */
+:root {
+  /* 1. Primary Colors (Tech-Professional Feel) */
+  --primary: #0066CC; /* Science Blue */
+  --primary-dark: #0052A3; /* Darker Science Blue */
+  --primary-light: #E6F0FF; /* Lighter Science Blue */
+  --info: #00B7C2; /* Teal / Cyan */
+  --royal-blue: #4169E1; /* Royal Blue (Footer/Toolbar?) */
+
+  /* 2. Secondary / Accent Colors */
+  --secondary: #2ECC71; /* Emerald Green */
+  --secondary-dark: #25a25a;
+  --accent: #A259FF; /* Electric Purple */
+  --accent-dark: #8e44ad;
+  --success: var(--secondary);
+  --danger: #e74c3c; /* Standard Red */
+  --warning: #F1C40F; /* Amber / Yellow */
+
+  /* 3. Neutral Base */
+  --gray-100: #F8F9FA; /* Background Light */
+  --gray-200: #DDDDDD; /* Soft Gray Border */
+  --gray-300: #CCCCCC;
+  --gray-500: #888888;
+  --gray-700: #666666; /* Medium Gray for secondary text */
+  --gray-900: #333333; /* Text / Font Dark Gray */
+  
+  /* Base Roles */
+  --body-bg: var(--gray-100);
+  --card-bg: #FFFFFF; /* White Elements */
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-700);
+  --border-color: var(--gray-200);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 16px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode variables */
+.dark-mode {
+  --primary: #3399FF; /* Lighter Science Blue */
+  --primary-dark: #0066CC;
+  --primary-light: #003366;
+  --info: #2EE5D0; /* Lighter Teal / Cyan */
+  --royal-blue: #5F81E5;
+
+  --secondary: #58D68D; /* Lighter Emerald Green */
+  --secondary-dark: #2ECC71;
+  --accent: #C390FF; /* Lighter Electric Purple */
+  --accent-dark: #A259FF;
+  --success: var(--secondary);
+  --danger: #f1948a; /* Lighter Red */
+  --warning: #f5c75f; /* Lighter Amber */
+
+  --gray-100: #2C2C2C;
+  --gray-200: #444444; /* Darker Border */
+  --gray-300: #555555;
+  --gray-500: #AAAAAA; /* Lighter gray for secondary text */
+  --gray-700: #CCCCCC; /* Lighter text */
+  --gray-900: #F8F9FA; /* Light text (almost white) */
+
+  --body-bg: #1A1A1A; /* Very Dark Background */
+  --card-bg: #252525; /* Dark Card Background */
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-500);
+  --border-color: var(--gray-200);
+
+  /* Dark Shadows */
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.15);
+  --shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 5px 10px 0 rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 10px 20px 0 rgba(0, 0, 0, 0.25);
+}
+
+body {
+  background-color: var(--body-bg);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Inter', sans-serif; /* Ensure consistent font */
+}
+
+/* Udemy-inspired Card Styles */
+.course-card-udemy {
+  border-radius: 4px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease-in-out;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  box-shadow: none; /* Start with no shadow */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.course-card-udemy:hover {
+  box-shadow: var(--shadow-md);
+  transform: none; /* Remove translateY */
+}
+
+.course-card-udemy .card-image {
+  /* Placeholder for image */
+  height: 150px;
+  background-color: var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-500);
+}
+
+.dark-mode .course-card-udemy .card-image {
+  background-color: #3a3b3c;
+}
+
+.course-card-udemy .card-content {
+  padding: 1rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.course-card-udemy .card-title {
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+  /* Clamp title to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.6em; /* approx 2 lines */
+}
+
+.course-card-udemy .card-instructor,
+.course-card-udemy .card-details {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.course-card-udemy .card-rating {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.course-card-udemy .card-rating .stars {
+  color: #f59e0b; /* Star color */
+  margin-right: 0.25rem;
+}
+
+.course-card-udemy .card-rating .rating-value {
+  font-weight: 700;
+  color: #b4690e; /* Darker yellow */
+  margin-right: 0.25rem;
+}
+
+.dark-mode .course-card-udemy .card-rating .rating-value {
+  color: #facc15; /* Lighter yellow */
+}
+
+.course-card-udemy .card-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: auto; /* Push price to bottom */
+}
+
+/* Adjust existing enhanced styles or remove if not needed */
+.enhanced-card {
+  /* Keeping for potential other uses, but course cards use new style */
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.enhanced-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Udemy-inspired Button Styles */
+.btn-udemy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid transparent;
+  font-weight: 700;
+  border-radius: 2px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-udemy-primary {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.btn-udemy-primary:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.btn-udemy-secondary {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--text-primary);
+}
+
+.dark-mode .btn-udemy-secondary {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.btn-udemy-secondary:hover {
+  background-color: var(--gray-100);
+}
+
+.dark-mode .btn-udemy-secondary:hover {
+  background-color: var(--card-bg);
+}
+
+/* Remove old button ripple effect if sticking to Udemy style */
+.btn-enhanced::after { content: none; }
+
+/* Adjust Typography */
+.text-enhanced { letter-spacing: normal; } /* Reset letter spacing */
+.title-gradient { background: none; -webkit-background-clip: initial; background-clip: initial; -webkit-text-fill-color: initial; text-fill-color: initial; color: var(--primary); } /* Remove gradient, use primary color */
+
+/* Navigation Adjustments */
+.nav-enhanced {
+  backdrop-filter: none; /* Remove blur */
+  background-color: var(--body-bg);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.3s ease;
+}
+
+.dark-mode .nav-enhanced {
+  background-color: var(--body-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Remove glassmorphism */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: none;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark-mode .glass-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+}
+
+/* Enhanced Search Bar (Udemy Style) */
+.search-udemy {
+  border: 1px solid var(--gray-700);
+  border-radius: 9999px; /* Pill shape */
+  background-color: var(--gray-100);
+  padding: 0.5rem 1rem 0.5rem 2.5rem; /* Space for icon */
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  width: 100%; /* Take full width in container */
+}
+
+.dark-mode .search-udemy {
+  background-color: var(--card-bg);
+  border-color: var(--gray-500);
+}
+
+.search-udemy:focus {
+  background-color: var(--body-bg);
+  border-color: var(--gray-900);
+  outline: none;
+  box-shadow: none;
+}
+
+.dark-mode .search-udemy:focus {
+  background-color: var(--body-bg);
+  border-color: var(--gray-300);
+}
+
+.search-container {
+  position: relative;
+  flex-grow: 1;
+  margin: 0 1rem;
+}
+
+.search-container .search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+/* Reset badges */
+.badge-enhanced {
+  border-radius: 2px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Reset stats cards */
+.stat-card {
+  border-radius: 4px;
+  padding: 1rem;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.stat-card:hover {
+  transform: none;
+  box-shadow: var(--shadow);
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-card .stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* Custom Scrollbar (Keep or adjust as needed) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: #2d2d3f;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Animations (keep or adjust) */
+/* ... existing animation styles ... */
+
+/* Dark mode toggle (keep or adjust) */
+/* ... existing toggle styles ... */
+
+/* Course Grid Improvements */
+.course-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* Enhanced animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+/* Staggered animation for lists */
+.stagger-item {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+.stagger-item:nth-child(4) { animation-delay: 0.4s; }
+.stagger-item:nth-child(5) { animation-delay: 0.5s; }
+.stagger-item:nth-child(6) { animation-delay: 0.6s; }
+.stagger-item:nth-child(7) { animation-delay: 0.7s; }
+.stagger-item:nth-child(8) { animation-delay: 0.8s; }
+
+/* Dark mode toggle */
+.dark-mode-toggle {
+  cursor: pointer;
+  width: 48px;
+  height: 24px;
+  position: relative;
+  border-radius: 24px;
+  background-color: #6366f1;
+  transition: background-color 0.3s ease;
+  margin-left: 1rem;
+}
+
+.dark-mode-toggle::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: white;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .dark-mode-toggle {
+  background-color: #4b5563;
+}
+
+.dark-mode .dark-mode-toggle::after {
+  transform: translateX(24px);
+} 

@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import joinedload
 from rdflib import Graph, Namespace, Literal
 from rdflib.namespace import RDF, RDFS
 from datetime import datetime
@@ -111,6 +112,11 @@ class QuizAttempt(db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# Context Processor to inject variables into all templates
+@app.context_processor
+def inject_now():
+    return {'now': datetime.utcnow} # Use utcnow for consistency
 
 def admin_required(f):
     @wraps(f)
@@ -268,14 +274,16 @@ def unenroll(course_id):
 @app.route('/my-courses')
 @login_required
 def my_courses():
-    enrollments = current_user.enrollments
+    # Eager load the 'course' relationship for each enrollment
+    enrollments = Enrollment.query.options(joinedload(Enrollment.course)).filter_by(user_id=current_user.id).all()
     return render_template('my_courses.html', enrollments=enrollments)
 
 @app.route('/lesson/<int:lesson_id>')
 @login_required
 def view_lesson(lesson_id):
-    lesson = Lesson.query.get_or_404(lesson_id)
-    course = lesson.course
+    # Eager load the course relationship when fetching the lesson
+    lesson = Lesson.query.options(joinedload(Lesson.course)).get_or_404(lesson_id)
+    course = lesson.course # Already loaded, no extra query
     
     # Check if user is enrolled in the course
     enrollment = Enrollment.query.filter_by(
@@ -957,9 +965,11 @@ h1 {
 
 if __name__ == '__main__':
     with app.app_context():
-        # Drop all tables and recreate them
-        db.drop_all()
+        # Ensure tables are created if they don't exist (for local dev)
+        # For production, use migrations (e.g., Flask-Migrate)
+        # db.drop_all() # Removed - Destructive and inefficient for dev/prod
         db.create_all()
-        # Add sample courses
-        add_sample_courses()
+        # Add sample courses - Removed from startup
+        # Consider a separate seed script or CLI command if needed
+        # add_sample_courses() 
     app.run(debug=True)

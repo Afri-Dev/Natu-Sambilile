@@ -1,73 +1,93 @@
-{% extends "base.html" %} {% block title %}Login - Learning Platform{% endblock
-%} {% block content %}
-<div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-  <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-      Sign in to your account
-    </h2>
-    <p class="mt-2 text-center text-sm text-gray-600">
-      Or
-      <a
-        href="{{ url_for('signup') }}"
-        class="font-medium text-indigo-600 hover:text-indigo-500"
-      >
-        create a new account
-      </a>
-    </p>
-  </div>
+{% extends "base.html" %} {% block title %}Login - LearnHub{% endblock %}
 
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-      <form class="space-y-6" method="POST" action="{{ url_for('login') }}">
-        {% with messages = get_flashed_messages() %} {% if messages %} {% for
-        message in messages %}
-        <div
-          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-          role="alert"
-        >
-          <span class="block sm:inline">{{ message }}</span>
-        </div>
-        {% endfor %} {% endif %} {% endwith %}
-        <div>
-          <label for="username" class="block text-sm font-medium text-gray-700">
-            Username
-          </label>
-          <div class="mt-1">
-            <input
-              id="username"
-              name="username"
-              type="text"
-              required
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
+{% block content %}
+<div class="max-w-md mx-auto mt-12 mb-24 px-4">
+  <h2 class="text-2xl font-bold text-center text-text-primary mb-6">
+    Log in to your LearnHub account
+  </h2>
+
+  <div class="bg-card-bg p-8 border border-border-color rounded shadow-md">
+    <form class="space-y-6" method="POST" action="{{ url_for('login') }}">
+      {% with messages = get_flashed_messages(category_filter=['error']) %}
+        {% if messages %}
+          {% for message in messages %}
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span class="block sm:inline">{{ message }}</span>
           </div>
-        </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      
+      <div>
+        <label for="username" class="block text-sm font-medium text-text-primary mb-1">
+          Username
+        </label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          required
+          class="appearance-none block w-full px-3 py-2 border border-border-color rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-body-bg text-text-primary"
+          placeholder="Enter your username"
+        />
+      </div>
 
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <div class="mt-1">
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-        </div>
+      <div>
+        <label for="password" class="block text-sm font-medium text-text-primary mb-1">
+          Password
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          class="appearance-none block w-full px-3 py-2 border border-border-color rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-body-bg text-text-primary"
+          placeholder="Enter your password"
+        />
+      </div>
 
-        <div>
-          <button
-            type="submit"
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <i class="fas fa-sign-in-alt mr-2"></i> Sign in
-          </button>
-        </div>
-      </form>
+      <div>
+        <button type="submit" class="w-full btn-udemy btn-udemy-primary">
+          Log In
+        </button>
+      </div>
+    </form>
+
+    <div class="mt-6 text-center">
+      <p class="text-sm text-text-secondary">
+        Don't have an account?
+        <a href="{{ url_for('signup') }}" class="font-medium text-primary hover:underline">
+          Sign up
+        </a>
+      </p>
     </div>
+
+    <!-- Optional: Add social login buttons if implemented -->
+    <!-- 
+    <div class="mt-6">
+      <div class="relative">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-border-color"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 bg-card-bg text-text-secondary">Or continue with</span>
+        </div>
+      </div>
+      
+      <div class="mt-6 grid grid-cols-2 gap-3">
+        <div>
+          <a href="#" class="w-full btn-udemy btn-udemy-secondary">
+            <i class="fab fa-google mr-2"></i> Google
+          </a>
+        </div>
+        <div>
+          <a href="#" class="w-full btn-udemy btn-udemy-secondary">
+            <i class="fab fa-github mr-2"></i> GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+    -->
   </div>
 </div>
 {% endblock %}
