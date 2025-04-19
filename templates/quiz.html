@@ -60,12 +60,18 @@ Platform{% endblock %} {% block content %}
               <div class="text-sm text-gray-900">
                 Attempt #{{ loop.revindex }}
               </div>
-              <div class="text-sm font-medium">
-                <span
-                  class="px-2 py-1 rounded-full {% if attempt.score >= 70 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}"
-                >
-                  Score: {{ "%.1f"|format(attempt.score) }}%
-                </span>
+              <div class="flex items-center space-x-4">
+                <div class="text-sm font-medium">
+                  <span
+                    class="px-2 py-1 rounded-full {% if attempt.score >= 70 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}"
+                  >
+                    Score: {{ "%.1f"|format(attempt.score) }}%
+                  </span>
+                </div>
+                <a href="{{ url_for('view_quiz_results', attempt_id=attempt.id) }}" 
+                   class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                  <i class="fas fa-search mr-1"></i> View Details
+                </a>
               </div>
             </div>
             <div class="mt-2 text-sm text-gray-500">

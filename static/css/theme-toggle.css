@@ -64,12 +64,15 @@ nav .theme-toggle {
 .theme-toggle:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow);
+  background-color: var(--card-bg);
   color: var(--primary);
+  border-color: var(--border-hover);
 }
 
 .theme-toggle:focus {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
 }
 
 .theme-toggle i {
@@ -79,6 +82,23 @@ nav .theme-toggle {
 
 .theme-toggle:hover i {
   transform: rotate(15deg);
+}
+
+/* Special appearance for dark mode */
+.dark-mode .theme-toggle {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.dark-mode .theme-toggle:hover {
+  background-color: var(--card-bg-hover);
+  border-color: var(--border-hover);
+  color: var(--primary);
+}
+
+.dark-mode .theme-toggle:focus {
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.3);
 }
 
 /* Hide old dark mode toggle */
@@ -113,4 +133,17 @@ img, video, canvas, iframe,
 /* Add a class to the body once page has loaded to enable transitions */
 body:not(.preload) * {
   will-change: auto;
+}
+
+/* Visual indicator for screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 } 

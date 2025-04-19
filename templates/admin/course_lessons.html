@@ -65,9 +65,14 @@
                                 </td>
                                 <td>
                                     {% if hasattr(lesson, 'quiz') and lesson.quiz %}
-                                    <a href="{{ url_for('admin_edit_quiz', quiz_id=lesson.quiz.id) }}" class="btn btn-info btn-sm">
-                                        <i class="fas fa-question-circle action-icon"></i> Edit Quiz
-                                    </a>
+                                    <div class="flex space-x-2">
+                                        <a href="{{ url_for('admin_edit_quiz', quiz_id=lesson.quiz.id) }}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-edit action-icon"></i> Edit Quiz
+                                        </a>
+                                        <a href="{{ url_for('admin_quiz_attempts', quiz_id=lesson.quiz.id) }}" class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-chart-bar action-icon"></i> View Attempts
+                                        </a>
+                                    </div>
                                     {% else %}
                                     <a href="{{ url_for('admin_new_quiz', lesson_id=lesson.id) }}" class="btn btn-outline-info btn-sm">
                                         <i class="fas fa-plus-circle action-icon"></i> Add Quiz

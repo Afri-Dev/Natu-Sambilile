@@ -38,7 +38,7 @@
               </span>
               <span class="text-xs text-text-secondary card-placeholder">(Placeholder ratings)</span>
             </div>
-            <p class="card-details">{{ course.duration_weeks }} weeks • {{ course.lessons|length }} lessons</p>
+            <p class="card-details">{{ course.duration_weeks }} weeks • {{ course.lessons|default([])|length }} lessons</p>
             
             <div class="mt-2 flex flex-wrap gap-1">
               {% if course.semantic_tags %}

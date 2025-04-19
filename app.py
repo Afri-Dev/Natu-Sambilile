@@ -16,7 +16,7 @@ from wtforms import StringField, TextAreaField, IntegerField, BooleanField, Subm
 from wtforms.validators import DataRequired, Length, Optional, URL, NumberRange
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///elearning.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///elearning.db'  # Using the database in the root directory
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.urandom(24)
 
@@ -526,14 +526,22 @@ def submit_quiz(lesson_id):
     total_questions = len(quiz.questions)
     correct_answers = 0
     
+    # Store user selections and correctness for each question
+    questions_with_answers = []
+    
     for question in quiz.questions:
         selected_option_id = request.form.get(f'question_{question.id}')
+        is_correct = False
+        
         if selected_option_id:
             selected_option = QuizOption.query.get(int(selected_option_id))
             if selected_option and selected_option.is_correct:
                 correct_answers += 1
+                is_correct = True
+            
+            questions_with_answers.append((question, selected_option, is_correct))
     
-    score = (correct_answers / total_questions) * 100
+    score = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
     
     # Record attempt
     attempt = QuizAttempt(
@@ -544,8 +552,31 @@ def submit_quiz(lesson_id):
     db.session.add(attempt)
     db.session.commit()
     
-    flash(f'Quiz submitted! Your score: {score:.1f}%', 'success')
-    return redirect(url_for('take_quiz', lesson_id=lesson_id))
+    # Check if there's a next lesson
+    lesson = Lesson.query.get_or_404(lesson_id)
+    next_lesson = Lesson.query.filter_by(
+        course_id=lesson.course_id,
+        lesson_number=lesson.lesson_number + 1
+    ).first()
+    
+    # Store in session for result page
+    session['quiz_results'] = {
+        'attempt_id': attempt.id,
+        'correct_answers': correct_answers,
+        'total_questions': total_questions,
+        'questions_data': [(q.id, a.id if a else None, c) for q, a, c in questions_with_answers]
+    }
+    
+    return render_template(
+        'quiz_results.html',
+        quiz=quiz,
+        lesson=lesson,
+        attempt=attempt,
+        correct_answers=correct_answers,
+        total_questions=total_questions,
+        questions_with_answers=questions_with_answers,
+        next_lesson=next_lesson
+    )
 
 @app.route('/api/recommend', methods=['POST'])
 @login_required
@@ -1282,39 +1313,155 @@ def add_missing_lesson_columns():
     Add missing columns to Lesson table if they don't exist.
     This function is used during app startup to ensure database schema is updated.
     """
-    try:
-        # Check if columns exist
-        conn = sqlite3.connect('instance/elearning.db')
-        cursor = conn.cursor()
-        
-        # Get column info
-        cursor.execute("PRAGMA table_info(lesson)")
-        columns = cursor.fetchall()
-        column_names = [column[1] for column in columns]
-        
-        # Add columns if they don't exist
-        if 'video_url' not in column_names:
-            print("Adding 'video_url' column to lesson table...")
-            cursor.execute("ALTER TABLE lesson ADD COLUMN video_url TEXT")
-            print("Added 'video_url' column successfully.")
-        
-        if 'resources' not in column_names:
-            print("Adding 'resources' column to lesson table...")
-            cursor.execute("ALTER TABLE lesson ADD COLUMN resources TEXT")
-            print("Added 'resources' column successfully.")
-        
-        if 'duration_minutes' not in column_names:
-            print("Adding 'duration_minutes' column to lesson table...")
-            cursor.execute("ALTER TABLE lesson ADD COLUMN duration_minutes INTEGER DEFAULT 60")
-            print("Added 'duration_minutes' column successfully.")
-        
-        conn.commit()
-        conn.close()
-        
-    except Error as e:
-        print(f"Database error: {e}")
-        if 'conn' in locals() and conn:
+    db_paths = ['instance/elearning.db', 'elearning.db']
+    
+    for db_path in db_paths:
+        try:
+            print(f"Checking database at {db_path}...")
+            # Check if the file exists
+            if not os.path.exists(db_path):
+                print(f"Database file {db_path} does not exist, skipping.")
+                continue
+                
+            # Connect to the database
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Get column info
+            cursor.execute("PRAGMA table_info(lesson)")
+            columns = cursor.fetchall()
+            column_names = [column[1] for column in columns]
+            
+            # Add columns if they don't exist
+            if 'video_url' not in column_names:
+                print(f"Adding 'video_url' column to lesson table in {db_path}...")
+                cursor.execute("ALTER TABLE lesson ADD COLUMN video_url TEXT")
+                print("Added 'video_url' column successfully.")
+            
+            if 'resources' not in column_names:
+                print(f"Adding 'resources' column to lesson table in {db_path}...")
+                cursor.execute("ALTER TABLE lesson ADD COLUMN resources TEXT")
+                print("Added 'resources' column successfully.")
+            
+            if 'duration_minutes' not in column_names:
+                print(f"Adding 'duration_minutes' column to lesson table in {db_path}...")
+                cursor.execute("ALTER TABLE lesson ADD COLUMN duration_minutes INTEGER DEFAULT 60")
+                print("Added 'duration_minutes' column successfully.")
+            
+            conn.commit()
+            print(f"Successfully updated database at {db_path}")
             conn.close()
+            
+        except Error as e:
+            print(f"Database error with {db_path}: {e}")
+            if 'conn' in locals() and conn:
+                conn.close()
+
+@app.route('/quiz/results/<int:attempt_id>')
+@login_required
+def view_quiz_results(attempt_id):
+    # Get the attempt
+    attempt = QuizAttempt.query.filter_by(id=attempt_id, user_id=current_user.id).first_or_404()
+    quiz = Quiz.query.get_or_404(attempt.quiz_id)
+    lesson = Lesson.query.filter_by(id=quiz.lesson_id).first_or_404()
+    
+    # Check if this quiz belongs to a course the user is enrolled in
+    enrollment = Enrollment.query.filter_by(
+        user_id=current_user.id,
+        course_id=lesson.course_id
+    ).first_or_404()
+    
+    # Check if there's a next lesson
+    next_lesson = Lesson.query.filter_by(
+        course_id=lesson.course_id,
+        lesson_number=lesson.lesson_number + 1
+    ).first()
+    
+    # If we have stored results in the session, use them
+    if 'quiz_results' in session and session['quiz_results']['attempt_id'] == attempt_id:
+        correct_answers = session['quiz_results']['correct_answers']
+        total_questions = session['quiz_results']['total_questions']
+        
+        # Reconstruct questions with answers
+        questions_with_answers = []
+        for question_id, option_id, is_correct in session['quiz_results']['questions_data']:
+            question = QuizQuestion.query.get(question_id)
+            option = QuizOption.query.get(option_id) if option_id else None
+            questions_with_answers.append((question, option, is_correct))
+    else:
+        # Otherwise reconstruct from the database
+        questions = QuizQuestion.query.filter_by(quiz_id=quiz.id).all()
+        total_questions = len(questions)
+        
+        # We don't store actual answers in the database, so we'll do our best estimate
+        # based on the score
+        correct_answers = int((attempt.score / 100) * total_questions)
+        
+        # Just show questions without specific user answers
+        questions_with_answers = []
+        for question in questions:
+            # Get all options
+            question.options = QuizOption.query.filter_by(quiz_question_id=question.id).all()
+            # Find the correct option
+            correct_option = next((opt for opt in question.options if opt.is_correct), None)
+            questions_with_answers.append((question, correct_option, True))
+    
+    return render_template(
+        'quiz_results.html',
+        quiz=quiz,
+        lesson=lesson,
+        attempt=attempt,
+        correct_answers=correct_answers,
+        total_questions=total_questions,
+        questions_with_answers=questions_with_answers,
+        next_lesson=next_lesson
+    )
+
+@app.route('/admin/quizzes/<int:quiz_id>/attempts')
+@admin_required
+def admin_quiz_attempts(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    lesson = Lesson.query.get_or_404(quiz.lesson_id)
+    course = Course.query.get_or_404(lesson.course_id)
+    
+    # Get all attempts for this quiz, ordered by completion date (newest first)
+    attempts = QuizAttempt.query.filter_by(quiz_id=quiz_id).order_by(QuizAttempt.completed_at.desc()).all()
+    
+    # Preload users for all attempts
+    user_ids = [attempt.user_id for attempt in attempts]
+    users = {user.id: user for user in User.query.filter(User.id.in_(user_ids)).all()}
+    
+    # Calculate statistics
+    total_attempts = len(attempts)
+    avg_score = sum(attempt.score for attempt in attempts) / total_attempts if total_attempts > 0 else 0
+    passing_attempts = sum(1 for attempt in attempts if attempt.score >= 70)
+    pass_rate = (passing_attempts / total_attempts * 100) if total_attempts > 0 else 0
+    
+    # Group attempts by user for the leaderboard
+    user_best_attempts = {}
+    for attempt in attempts:
+        user_id = attempt.user_id
+        if user_id not in user_best_attempts or attempt.score > user_best_attempts[user_id].score:
+            user_best_attempts[user_id] = attempt
+    
+    # Sort the leaderboard by score (highest first)
+    leaderboard = sorted(user_best_attempts.values(), key=lambda x: x.score, reverse=True)
+    
+    return render_template(
+        'admin/quiz_attempts.html',
+        quiz=quiz,
+        lesson=lesson,
+        course=course,
+        attempts=attempts,
+        users=users,
+        stats={
+            'total_attempts': total_attempts,
+            'avg_score': avg_score,
+            'passing_attempts': passing_attempts,
+            'pass_rate': pass_rate
+        },
+        leaderboard=leaderboard
+    )
 
 if __name__ == '__main__':
     # Create database tables
