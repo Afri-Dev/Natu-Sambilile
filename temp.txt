@@ -1,0 +1,10 @@
+        )
+        admin.set_password('12345qwert')
+        db.session.add(admin)
+        # Commit admin user separately
+XXX        try:
+                    db.session.commit()
+            print("Admin user created/verified.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error adding admin user: {e}")

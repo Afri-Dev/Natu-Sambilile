@@ -1,0 +1,116 @@
+/* Theme Toggle Styles */
+.theme-toggle {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 50;
+}
+
+/* Main layout - position in the header */
+nav .theme-toggle {
+  position: relative;
+  top: auto;
+  right: auto;
+  margin-left: 0.5rem;
+}
+
+/* Special case for admin layout */
+.admin-header .theme-toggle {
+  position: relative;
+  top: auto;
+  right: auto;
+  margin: 0 1rem;
+}
+
+/* Login page special case - keep fixed position */
+.login-form-container ~ .theme-toggle,
+.admin-container > .theme-toggle {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .theme-toggle {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  .theme-toggle i {
+    font-size: 1rem;
+  }
+  
+  /* Adjust positioning on mobile */
+  body:not(.admin-layout) .theme-toggle:not(.in-header) {
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+.theme-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  color: var(--primary);
+}
+
+.theme-toggle:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.theme-toggle i {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover i {
+  transform: rotate(15deg);
+}
+
+/* Hide old dark mode toggle */
+.dark-mode-toggle {
+  display: none;
+}
+
+/* Dark Mode Transition */
+html, body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Make sure transitions don't fire on page load */
+.preload * {
+  transition: none !important;
+}
+
+/* Theme transition applies to children */
+html *, body * {
+  transition: background-color 0.3s ease, 
+              color 0.3s ease, 
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* Exclude some elements from transition for performance */
+img, video, canvas, iframe, 
+.no-transition, .no-transition * {
+  transition: none !important;
+}
+
+/* Add a class to the body once page has loaded to enable transitions */
+body:not(.preload) * {
+  will-change: auto;
+} 
