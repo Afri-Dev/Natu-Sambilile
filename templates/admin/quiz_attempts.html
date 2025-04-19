@@ -1,0 +1,171 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Quiz Attempts - {{ quiz.title }}{% endblock %}
+
+{% block header_title %}Quiz Attempts{% endblock %}
+
+{% block admin_content %}
+<section class="py-6">
+    <div class="container">
+        <div class="hero bg-base-200 rounded-lg mb-6">
+            <div class="hero-content flex-col lg:flex-row">
+                <div>
+                    <h1 class="text-3xl font-bold">Quiz Attempts</h1>
+                    <p class="py-2">{{ quiz.title }}</p>
+                    <p class="pb-2 text-sm text-text-secondary">
+                        From lesson "{{ lesson.title }}" in course "{{ course.title }}"
+                    </p>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <a href="{{ url_for('admin_edit_quiz', quiz_id=quiz.id) }}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-edit mr-2"></i> Edit Quiz
+                        </a>
+                        <a href="{{ url_for('admin_course_lessons', course_id=course.id) }}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-arrow-left mr-2"></i> Back to Lessons
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Total Attempts -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-lg mb-2">Total Attempts</h2>
+                    <p class="text-3xl font-bold">{{ stats.total_attempts }}</p>
+                </div>
+            </div>
+            
+            <!-- Average Score -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-lg mb-2">Average Score</h2>
+                    <p class="text-3xl font-bold">{{ "%.1f"|format(stats.avg_score) }}%</p>
+                </div>
+            </div>
+            
+            <!-- Pass Rate -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-lg mb-2">Pass Rate</h2>
+                    <div class="flex items-end">
+                        <p class="text-3xl font-bold">{{ "%.1f"|format(stats.pass_rate) }}%</p>
+                        <p class="text-sm ml-2 mb-1 text-text-secondary">({{ stats.passing_attempts }} of {{ stats.total_attempts }})</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Leaderboard -->
+        {% if leaderboard %}
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="card-title">Student Leaderboard</h2>
+                <p class="text-sm text-text-secondary mb-4">Best score per student</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Student</th>
+                                <th>Best Score</th>
+                                <th>Last Attempt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in leaderboard %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="avatar">
+                                            <div class="mask mask-squircle w-8 h-8">
+                                                <img src="https://ui-avatars.com/api/?name={{ users[attempt.user_id].username }}&background=random" alt="{{ users[attempt.user_id].username }}" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold">{{ users[attempt.user_id].username }}</div>
+                                            <div class="text-sm opacity-50">{{ users[attempt.user_id].email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {{ 'bg-success text-white' if attempt.score >= 70 else 'bg-error text-white' }}">
+                                        {{ "%.1f"|format(attempt.score) }}%
+                                    </span>
+                                </td>
+                                <td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- All Attempts -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">All Attempts</h2>
+                <p class="text-sm text-text-secondary mb-4">Showing all student quiz attempts ({{ attempts|length }})</p>
+                
+                {% if attempts %}
+                <div class="overflow-x-auto">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in attempts %}
+                            <tr>
+                                <td>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="avatar">
+                                            <div class="mask mask-squircle w-8 h-8">
+                                                <img src="https://ui-avatars.com/api/?name={{ users[attempt.user_id].username }}&background=random" alt="{{ users[attempt.user_id].username }}" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold">{{ users[attempt.user_id].username }}</div>
+                                            <div class="text-sm opacity-50">{{ users[attempt.user_id].email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {{ 'bg-success text-white' if attempt.score >= 70 else 'bg-error text-white' }}">
+                                        {{ "%.1f"|format(attempt.score) }}%
+                                    </span>
+                                </td>
+                                <td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if attempt.score >= 70 %}
+                                    <div class="badge bg-success text-white">Passed</div>
+                                    {% else %}
+                                    <div class="badge bg-error text-white">Failed</div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <div>
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <span>No attempts have been recorded for this quiz yet.</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

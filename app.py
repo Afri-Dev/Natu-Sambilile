@@ -670,76 +670,64 @@ def admin_dashboard():
     """
     Admin dashboard view showing platform statistics and recent activity.
     """
-    # Use eager loading to reduce database queries
-    courses = Course.query.options(
-        db.joinedload(Course.enrollments)
-    ).all()
+    # Get all required stats in a single query
+    stats_query = db.session.query(
+        db.func.count(db.distinct(Course.id)).label('total_courses'),
+        db.func.count(db.distinct(User.id)).filter(User.is_admin == False).label('total_students'),
+        db.func.count(Enrollment.id).label('total_enrollments'),
+        db.func.count(db.case([(Enrollment.status == 'completed', 1)])).label('completed_enrollments')
+    ).select_from(db.outerjoin(Course, Enrollment.course_id == Course.id)
+      .outerjoin(User, (User.id == Enrollment.user_id) & (User.is_admin == False))
+    ).first()
+
+    total_courses = stats_query.total_courses
+    total_students = stats_query.total_students
+    total_enrollments = stats_query.total_enrollments
     
-    # Get students and enrollments in a single query
-    user_stats = db.session.query(
-        db.func.count(db.distinct(User.id)).label('total_students'),
-        db.func.count(Enrollment.id).label('total_enrollments')
-    ).outerjoin(Enrollment, User.id == Enrollment.user_id).filter(User.is_admin == False).first()
-    
-    total_students = user_stats.total_students
-    total_enrollments = user_stats.total_enrollments
-    total_courses = len(courses)
-    
-    # Calculate completion rate more efficiently
+    # Calculate completion rate
     completion_rate = 0
     if total_enrollments > 0:
-        completed = Enrollment.query.filter_by(status='completed').count()
-        completion_rate = round((completed / total_enrollments) * 100)
+        completion_rate = round((stats_query.completed_enrollments / total_enrollments) * 100)
     
-    # Generate monthly enrollment data for the chart
-    current_month = datetime.utcnow().month
-    current_year = datetime.utcnow().year
+    # Generate monthly enrollment data - use a single query with date filtering
+    current_date = datetime.utcnow()
+    start_date = current_date - timedelta(days=180)  # Last 6 months
+    
+    # Get monthly enrollments in a single query
+    month_enrollments = db.session.query(
+        db.func.strftime('%Y-%m', Enrollment.enrolled_at).label('month'),
+        db.func.count().label('count')
+    ).filter(
+        Enrollment.enrolled_at >= start_date
+    ).group_by('month').order_by('month').all()
+    
+    # Format for chart display
     monthly_enrollments = []
-    
-    # Generate data for the last 6 months
-    for i in range(5, -1, -1):
-        month = ((current_month - i - 1) % 12) + 1
-        year = current_year if month <= current_month else current_year - 1
-        
-        # Start and end dates for the month
-        start_date = datetime(year, month, 1)
-        if month == 12:
-            end_date = datetime(year + 1, 1, 1)
-        else:
-            end_date = datetime(year, month + 1, 1)
-        
-        # Count enrollments for this month
-        count = Enrollment.query.filter(
-            Enrollment.enrolled_at >= start_date,
-            Enrollment.enrolled_at < end_date
-        ).count()
-        
-        # Month name
-        month_name = start_date.strftime('%b')
-        
+    for month_data in month_enrollments:
+        year, month = month_data.month.split('-')
+        month_name = datetime(int(year), int(month), 1).strftime('%b')
         monthly_enrollments.append({
             "month": month_name,
-            "count": count
+            "count": month_data.count
         })
     
-    # Extract categories from course tags efficiently
+    # Get courses with tags for category analysis
+    courses = Course.query.filter(Course.semantic_tags != None).all()
+    
+    # Extract and count categories efficiently
     all_tags = []
     for course in courses:
         if course.semantic_tags:
             all_tags.extend([tag.strip() for tag in course.semantic_tags.split(',')])
     
-    # Count categories
+    # Count and sort categories
     category_counts = {}
     for tag in all_tags:
         category_counts[tag] = category_counts.get(tag, 0) + 1
-    
-    # Sort categories by count
     sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
-    
-    # Top categories (top 6)
     top_categories = dict(sorted_categories[:6])
     
-    # Recent activity - use joins explicitly due to relationship changes
+    # Get recent activity with a single efficient query
     recent_enrollments = Enrollment.query.join(
         User, User.id == Enrollment.user_id
     ).join(
@@ -749,7 +737,7 @@ def admin_dashboard():
         db.contains_eager(Enrollment.course)
     ).order_by(Enrollment.enrolled_at.desc()).limit(5).all()
     
-    # Recent completions - students who have completed courses
+    # Recent completions - more efficient query
     recent_completions = Enrollment.query.filter_by(status='completed').join(
         User, User.id == Enrollment.user_id
     ).join(
@@ -759,7 +747,7 @@ def admin_dashboard():
         db.contains_eager(Enrollment.course)
     ).order_by(Enrollment.enrolled_at.desc()).limit(5).all()
     
-    # Prepare statistics for the template
+    # Prepare statistics
     stats = {
         'total_courses': total_courses,
         'total_students': total_students,
@@ -832,138 +820,6 @@ def set_dark_mode():
         return jsonify({"status": "success"})
     else:
         return jsonify({"status": "error", "message": "Invalid dark_mode value"}), 400
-
-def add_sample_courses():
-    """
-    Add sample courses, lessons, quizzes, and quiz questions to the database.
-    This function is used for initial data seeding.
-    """
-    # Create admin user if none exists
-    admin_email = 'bupechiyana11@gmail.com'
-    admin = User.query.filter_by(email=admin_email).first()
-    if not admin:
-        admin = User(
-            username='Bupe Chiyana',
-            email=admin_email,
-            is_admin=True
-        )
-        admin.set_password('12345qwert')
-        db.session.add(admin)
-        # Commit admin user separately
-        try:
-            db.session.commit()
-            print("Admin user created/verified.")
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error adding admin user: {e}")
-            return # Stop if admin can't be added
-
-    # --- Create Courses ---
-    courses_data = [
-        {'title': 'Introduction to Python', 'description': 'Learn Python programming from scratch', 'semantic_tags': 'programming,python,beginner', 'max_students': 50, 'duration_weeks': 8},
-        {'title': 'Web Development Fundamentals', 'description': 'Master HTML, CSS, and JavaScript', 'semantic_tags': 'web,html,css,javascript', 'max_students': 40, 'duration_weeks': 10},
-        {'title': 'Cloud Architecture and Design', 'description': 'Learn to design scalable and resilient cloud architectures using AWS, Azure, and GCP.', 'semantic_tags': 'cloud,aws,azure,gcp,architecture,infrastructure', 'max_students': 40, 'duration_weeks': 10},
-        {'title': 'Advanced Cybersecurity', 'description': 'Master cybersecurity concepts, penetration testing, and security architecture.', 'semantic_tags': 'security,cybersecurity,pentest,networking,encryption', 'max_students': 35, 'duration_weeks': 12},
-        {'title': 'Data Engineering Pipeline Design', 'description': 'Build robust data pipelines using modern tools and best practices.', 'semantic_tags': 'data,etl,python,sql,apache,spark,airflow', 'max_students': 45, 'duration_weeks': 8},
-        {'title': 'Cross-Platform Mobile Development', 'description': 'Create mobile apps for iOS and Android using React Native and Flutter.', 'semantic_tags': 'mobile,react-native,flutter,ios,android,javascript', 'max_students': 50, 'duration_weeks': 10},
-        {'title': 'DevOps and CI/CD', 'description': 'Implement DevOps practices and build CI/CD pipelines using modern tools.', 'semantic_tags': 'devops,ci-cd,jenkins,docker,kubernetes,git', 'max_students': 40, 'duration_weeks': 8},
-        {'title': 'AI and Machine Learning Engineering', 'description': 'Design and deploy production-ready AI/ML systems at scale.', 'semantic_tags': 'ai,ml,python,tensorflow,pytorch,mlops', 'max_students': 35, 'duration_weeks': 14},
-        {'title': 'Blockchain Development', 'description': 'Build decentralized applications and smart contracts on Ethereum and other platforms.', 'semantic_tags': 'blockchain,ethereum,solidity,web3,smart-contracts', 'max_students': 30, 'duration_weeks': 10},
-        {'title': 'Microservices Architecture', 'description': 'Design and implement scalable microservices architectures using modern tools.', 'semantic_tags': 'microservices,architecture,docker,kubernetes,api,spring', 'max_students': 45, 'duration_weeks': 12}
-    ]
-
-    created_course_objects = []
-    admin_user_id = admin.id if admin else 1 # Fallback to 1
-
-    print("Checking and creating courses...")
-    for course_data in courses_data:
-        existing_course = Course.query.filter_by(title=course_data['title']).first()
-        if not existing_course:
-            course = Course(
-                title=course_data['title'],
-                description=course_data['description'],
-                semantic_tags=course_data['semantic_tags'],
-                user_id=admin_user_id,
-                max_students=course_data['max_students'],
-                duration_weeks=course_data['duration_weeks']
-            )
-            db.session.add(course)
-            created_course_objects.append(course) # Add the object
-            # print(f"  Added course '{course.title}' to session.") # Keep console cleaner
-        else:
-            created_course_objects.append(existing_course)
-            # print(f"  Course '{course_data['title']}' already exists.")
-
-    try:
-        db.session.commit()
-        print(f"Committed course additions/checks.")
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error committing courses: {e}")
-        return
-
-    # --- Add Lessons and Quizzes for Each Course ---
-    print("\nChecking and adding lessons/quizzes...")
-    for course in created_course_objects:
-        print(f"Processing course: {course.title} (ID: {course.id})")
-        try:
-            # Check if course already has 10 lessons
-            lesson_count = Lesson.query.filter_by(course_id=course.id).count()
-            if lesson_count >= 10:
-                print(f"  Skipping: Course already has {lesson_count} lessons.")
-                continue
-
-            lessons_added_this_run = 0
-            for i in range(1, 11):
-                # Create Lesson
-                lesson = Lesson(
-                    title=f"{course.title} - Lesson {i}",
-                    content=f"Placeholder content for Lesson {i} of {course.title}.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.",
-                    lesson_number=i,
-                    course_id=course.id
-                )
-                db.session.add(lesson)
-                db.session.flush() # Need lesson ID for Quiz FK
-
-                # Create Quiz for the Lesson
-                quiz = Quiz(
-                    title=f"Quiz for Lesson {i}",
-                    lesson_id=lesson.id
-                )
-                db.session.add(quiz)
-                db.session.flush() # Need quiz ID for Question FK
-
-                # Create Quiz Questions
-                for q_num in range(1, 3):
-                    question = QuizQuestion(
-                        quiz_id=quiz.id,
-                        question_text=f"Placeholder Question {q_num} for Lesson {i} Quiz?"
-                    )
-                    db.session.add(question)
-                    db.session.flush() # Need question ID for Option FK
-
-                    # Create Quiz Options
-                    for opt_num in range(1, 5):
-                        option = QuizOption(
-                            quiz_question_id=question.id,
-                            option_text=f"Option {opt_num}",
-                            is_correct=(opt_num == 1) # First option is correct
-                        )
-                        db.session.add(option)
-                lessons_added_this_run += 1 # Increment after successful lesson/quiz/q/o creation
-
-            # Commit after all lessons/quizzes for this specific course are added
-            db.session.commit()
-            print(f"  Successfully added {lessons_added_this_run} lessons/quizzes for course ID {course.id}.")
-
-        except Exception as e:
-            # Rollback changes for the current course if an error occurred
-            db.session.rollback()
-            print(f"  Error adding lessons/quizzes for course ID {course.id}: {e}")
-            # Continue to the next course even if one fails
-            continue
-
-    print("\nFinished adding sample data.")
 
 @app.route('/admin/courses/<int:course_id>/lessons')
 @admin_required
@@ -1308,55 +1164,6 @@ def admin_delete_option(option_id):
     flash('Option deleted successfully!', 'success')
     return redirect(url_for('admin_edit_quiz', quiz_id=question.quiz_id))
 
-def add_missing_lesson_columns():
-    """
-    Add missing columns to Lesson table if they don't exist.
-    This function is used during app startup to ensure database schema is updated.
-    """
-    db_paths = ['instance/elearning.db', 'elearning.db']
-    
-    for db_path in db_paths:
-        try:
-            print(f"Checking database at {db_path}...")
-            # Check if the file exists
-            if not os.path.exists(db_path):
-                print(f"Database file {db_path} does not exist, skipping.")
-                continue
-                
-            # Connect to the database
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
-            
-            # Get column info
-            cursor.execute("PRAGMA table_info(lesson)")
-            columns = cursor.fetchall()
-            column_names = [column[1] for column in columns]
-            
-            # Add columns if they don't exist
-            if 'video_url' not in column_names:
-                print(f"Adding 'video_url' column to lesson table in {db_path}...")
-                cursor.execute("ALTER TABLE lesson ADD COLUMN video_url TEXT")
-                print("Added 'video_url' column successfully.")
-            
-            if 'resources' not in column_names:
-                print(f"Adding 'resources' column to lesson table in {db_path}...")
-                cursor.execute("ALTER TABLE lesson ADD COLUMN resources TEXT")
-                print("Added 'resources' column successfully.")
-            
-            if 'duration_minutes' not in column_names:
-                print(f"Adding 'duration_minutes' column to lesson table in {db_path}...")
-                cursor.execute("ALTER TABLE lesson ADD COLUMN duration_minutes INTEGER DEFAULT 60")
-                print("Added 'duration_minutes' column successfully.")
-            
-            conn.commit()
-            print(f"Successfully updated database at {db_path}")
-            conn.close()
-            
-        except Error as e:
-            print(f"Database error with {db_path}: {e}")
-            if 'conn' in locals() and conn:
-                conn.close()
-
 @app.route('/quiz/results/<int:attempt_id>')
 @login_required
 def view_quiz_results(attempt_id):
@@ -1467,16 +1274,16 @@ if __name__ == '__main__':
     # Create database tables
     with app.app_context():
         db.create_all()
-        add_missing_lesson_columns()
         
         # Add sample data if enabled
         SEED_DATA = False  # <-- CHANGE THIS TO True TO SEED
         
         if SEED_DATA:
+            from utils.db_sample_data import add_sample_data
             print("SEED_DATA is True. Attempting to add sample data...")
-            add_sample_courses()
+            add_sample_data()
         else:
-            print("SEED_DATA is False. Skipping add_sample_courses.")
+            print("SEED_DATA is False. Skipping sample data creation.")
     
     # Run the app
     app.run(debug=True)
