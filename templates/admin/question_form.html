@@ -7,23 +7,51 @@
 {% block admin_content %}
 <section class="py-6">
     <div class="container">
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h2 class="card-title">{{ 'Edit Question' if question else 'Create New Question' }}</h2>
-                <p class="text-sm text-text-secondary">For Quiz: {{ quiz.title }}</p>
-                
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} mb-4">
-                        <div>
-                            <span>{{ message }}</span>
-                        </div>
+        <!-- Hero Section -->
+        <div class="bg-primary text-white rounded-lg mb-8 overflow-hidden shadow-md">
+            <div class="px-6 py-8 relative">
+                <div class="max-w-3xl relative z-10">
+                    <h1 class="text-3xl font-bold mb-2">{{ 'Edit' if question else 'Add New' }} Question</h1>
+                    <p class="text-lg text-white opacity-90 mb-4">
+                        {% if question %}
+                            Update question details
+                        {% else %}
+                            Create a new question for your quiz
+                        {% endif %}
+                    </p>
+                    <div class="inline-flex items-center px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">
+                        <i class="fas fa-question-circle mr-2"></i> For Quiz: {{ quiz.title }}
                     </div>
-                    {% endfor %}
-                {% endif %}
-                {% endwith %}
+                </div>
+                <!-- Decorative Elements -->
+                <div class="absolute right-0 top-0 h-full w-1/3 overflow-hidden opacity-10">
+                    <div class="absolute -right-10 top-10 w-64 h-64 rounded-full bg-white"></div>
+                    <div class="absolute right-40 bottom-10 w-32 h-32 rounded-full bg-white"></div>
+                </div>
+            </div>
+        </div>
                 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} mb-4">
+                <div>
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% else %}info-circle{% endif %} mr-2"></i>
+                    <span>{{ message }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+        
+        <div class="card bg-card-bg shadow-md border border-border-color rounded-lg overflow-hidden mb-8">
+            <div class="px-5 py-4 border-b border-border-color">
+                <h2 class="text-lg font-medium text-text-primary flex items-center">
+                    <i class="fas fa-pen-to-square text-primary mr-2"></i> Question Details
+                </h2>
+            </div>
+            
+            <div class="card-body p-6">
                 <form method="POST">
                     {{ form.csrf_token }}
                     
@@ -31,28 +59,48 @@
                         <!-- Question Text -->
                         <div class="form-control">
                             <label class="label">
-                                <span class="label-text">Question Text</span>
+                                <span class="label-text text-text-secondary">Question Text</span>
                             </label>
-                            {{ form.question_text(class="textarea textarea-bordered h-32") }}
+                            {{ form.question_text(class="textarea w-full px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary h-32", placeholder="Enter your question here...") }}
                             {% if form.question_text.errors %}
-                            <div class="text-error mt-1">
+                            <div class="text-danger mt-1 text-sm">
                                 {% for error in form.question_text.errors %}
                                 <p>{{ error }}</p>
                                 {% endfor %}
                             </div>
                             {% endif %}
+                            <p class="text-xs text-text-tertiary mt-1">Write a clear, concise question that tests a specific concept</p>
                         </div>
                         
-                        <div class="flex justify-between mt-4">
-                            <a href="{{ url_for('admin_edit_quiz', quiz_id=quiz.id) }}" class="btn btn-outline">
-                                Cancel
+                        <div class="flex justify-between pt-4 border-t border-border-color">
+                            <a href="{{ url_for('admin_edit_quiz', quiz_id=quiz.id) }}" class="px-5 py-2 border border-border-color rounded-md text-text-secondary hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <i class="fas fa-arrow-left mr-2"></i> Back to Quiz
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                {% if question %}Update{% else %}Create{% endif %} Question
+                            <button type="submit" class="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
+                                <i class="fas fa-{{ 'save' if question else 'plus-circle' }} mr-2"></i>
+                                {{ 'Update' if question else 'Create' }} Question
                             </button>
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+        
+        <!-- Tips Card -->
+        <div class="bg-info-light border border-info rounded-lg p-5">
+            <div class="flex items-start">
+                <div class="mr-4 text-info">
+                    <i class="fas fa-lightbulb text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-info">Tips for Writing Effective Questions</h3>
+                    <ul class="list-disc list-inside text-sm mt-2 space-y-1">
+                        <li>Be clear and specific in your phrasing</li>
+                        <li>Focus on testing understanding rather than memorization</li>
+                        <li>Avoid ambiguous wording that could confuse students</li>
+                        <li>After creating your question, you'll be able to add multiple answer options</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

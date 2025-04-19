@@ -4,103 +4,173 @@
 
 /* Standard Color Palette - Light Mode */
 :root {
+  /* Color System - Light Mode */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #4361ee; /* Main primary color - adjusted for better contrast */
+  --color-primary-600: #3949ab; /* Darker primary for buttons/focus */
+  --color-primary-700: #312e81;
+  --color-primary-800: #1e1b4b;
+  --color-primary-900: #0f172a;
+  
+  /* Secondary Colors - Enhanced for better contrast */
+  --color-secondary-50: #f8fafc;
+  --color-secondary-100: #f1f5f9;
+  --color-secondary-200: #e2e8f0;
+  --color-secondary-300: #cbd5e1;
+  --color-secondary-400: #94a3b8;
+  --color-secondary-500: #64748b;
+  --color-secondary-600: #475569; /* Better contrast for text on light backgrounds */
+  --color-secondary-700: #334155;
+  --color-secondary-800: #1e293b;
+  --color-secondary-900: #0f172a;
+  
+  /* Status Colors - Enhanced for better accessibility */
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-200: #a7f3d0;
+  --color-success-300: #6ee7b7;
+  --color-success-400: #34d399;
+  --color-success-500: #059669; /* Darker for better contrast */
+  --color-success-600: #047857; /* Darker green meets AA standards */
+  --color-success-700: #065f46;
+  --color-success-800: #064e3b;
+  --color-success-900: #022c22;
+  
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706; /* Darker amber for better contrast */
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626; /* Darker red for better contrast */
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-200: #bfdbfe;
+  --color-info-300: #93c5fd;
+  --color-info-400: #60a5fa;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb; /* Darker blue for better contrast */
+  --color-info-700: #1d4ed8;
+  --color-info-800: #1e40af;
+  --color-info-900: #1e3a8a;
+
   /* Core & Accent */
-  --primary: #3d7cf4;         /* Optimized Blue - better contrast */
-  --primary-dark: #2b62d3;    /* Darker - better for hover states */
-  --primary-light: #e4efff;   /* Lighter - better for backgrounds */
-  --secondary: #6c757d;       /* Standard Gray */
-  --secondary-dark: #5c636a;  /* Darker Gray */
-  --accent: #0dcaf0;          /* Cyan/Info color */
+  --primary: #4361ee;         /* Optimized Blue - enhanced brand consistency */
+  --primary-dark: #3949ab;    /* Darker blue - better contrast for buttons */
+  --primary-light: #e0e7ff;   /* Lighter blue - softer backgrounds */
+  --secondary: #475569;       /* Slate gray - modern neutral with better contrast */
+  --secondary-dark: #334155;  /* Darker gray - improved accessibility */
+  --accent: #0ea5e9;          /* Sky blue - friendlier and consistent with brand */
 
   /* Status Colors - Optimized for accessibility */
-  --success: #0d8a4a;         /* Darker Green - better contrast */
-  --success-light: #d1f1de;   /* Light Green background */
-  --warning: #eb9e00;         /* Darker Yellow - better contrast */
-  --warning-light: #fff6e0;   /* Light Yellow background */
-  --danger: #cf3040;          /* Darker Red - better contrast */
-  --danger-light: #fbe4e7;    /* Light Red background */
-  --info: #0297ae;            /* Darker Cyan - better contrast */
-  --info-light: #ddf6fa;      /* Light Cyan background */
+  --success: #059669;         /* Emerald green - WCAG AA compliant */
+  --success-light: #d1fae5;   /* Light green background - softer feel */
+  --warning: #d97706;         /* Amber - high visibility and contrast */
+  --warning-light: #fef3c7;   /* Light amber background - gentle but visible */
+  --danger: #dc2626;          /* Red - clear error indicator with better contrast */
+  --danger-light: #fee2e2;    /* Light red background - soft but noticeable */
+  --info: #2563eb;            /* Blue - consistent with primary and better contrast */
+  --info-light: #dbeafe;      /* Light blue background - subtle but distinct */
 
   /* Backgrounds & Text */
-  --body-bg: #f8f9fa;         /* Light Gray background - easier on eyes */
-  --card-bg: #ffffff;         /* White */
-  --text-primary: #272b30;    /* Almost black - better readability */
-  --text-secondary: #495057;  /* Darker Gray - better contrast */
-  --text-tertiary: #868e96;   /* Medium Gray - for less important text */
+  --body-bg: #f8fafc;         /* Very light blueish gray - easier on eyes */
+  --card-bg: #ffffff;         /* Pure white - clean and crisp cards */
+  --card-bg-hover: #f1f5f9;   /* Light gray with blue undertone for hover states */
+  --text-primary: #0f172a;    /* Very dark blue-gray - excellent readability */
+  --text-secondary: #475569;  /* Medium slate - strong contrast for secondary text */
+  --text-tertiary: #64748b;   /* Lighter slate - still maintains good contrast */
 
   /* Borders & Dividers */
-  --border-color: #dee2e6;    /* Light Gray */
-  --border-hover: #ced4da;    /* Slightly darker for hover states */
+  --border-color: #cbd5e1;    /* Slightly darker border - more visible division */
+  --border-hover: #94a3b8;    /* Medium gray for hover states - clear interaction */
   
   /* Shadows & Misc */
-  --shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
-  --shadow: 0 .5rem 1rem rgba(0,0,0,.1);
-  --shadow-md: 0 0.75rem 1.5rem rgba(0,0,0,.075);
-  --shadow-lg: 0 1rem 2rem rgba(0, 0, 0, 0.1);
-  --primary-rgb: 61, 124, 244;  /* RGB for #3d7cf4 */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.07);
+  --shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.06);
+  --shadow-md: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.05);
+  --shadow-lg: 0 20px 25px -5px rgba(0,0,0,.1), 0 8px 10px -6px rgba(0,0,0,.05);
+  --primary-rgb: 67, 97, 238;  /* RGB for #4361ee */
   
   /* Gray Scale */
-  --gray-100: #f8f9fa;
-  --gray-200: #e9ecef;
-  --gray-300: #dee2e6;
-  --gray-400: #ced4da;
-  --gray-500: #adb5bd;
-  --gray-600: #6c757d;
-  --gray-700: #495057;
-  --gray-800: #343a40;
-  --gray-900: #212529;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
 }
 
 /* Standard Color Palette - Dark Mode */
 .dark-mode {
   /* Core & Accent */
-  --primary: #60a5fa;         /* Brighter Blue - better visibility in dark mode */
-  --primary-dark: #3b82f6;    /* Slightly darker for hover states */
-  --primary-light: #1e3a8a;   /* Dark blue - for backgrounds in dark mode */
-  --secondary: #9ca3af;       /* Lighter Gray for dark mode */
-  --secondary-dark: #6b7280;  /* Mid Gray for dark mode */
-  --accent: #22d3ee;          /* Brighter Cyan for dark mode */
+  --primary: #60a5fa;         /* Bright blue with good visibility in dark mode */
+  --primary-dark: #4f46e5;    /* Slightly darker purple-blue for hover states */
+  --primary-light: #1e40af;   /* Deep blue for subtle backgrounds in dark mode */
+  --secondary: #d1d5db;       /* Light gray for better text contrast */
+  --secondary-dark: #9ca3af;  /* Medium gray for secondary elements */
+  --accent: #0ea5e9;          /* Vibrant sky blue for accent elements */
 
-  /* Status Colors - Optimized for dark mode */
-  --success: #34d399;         /* Brighter Green for dark mode */
-  --success-light: #064e3b;   /* Dark green background */
-  --warning: #fbbf24;         /* Brighter Yellow for dark mode */
-  --warning-light: #78350f;   /* Dark yellow/brown background */
-  --danger: #f87171;          /* Brighter Red for dark mode */
-  --danger-light: #7f1d1d;    /* Dark red background */
-  --info: #67e8f9;            /* Brighter Cyan for dark mode */
-  --info-light: #155e75;      /* Dark cyan background */
+  /* Status Colors - Enhanced for dark mode visibility */
+  --success: #10b981;         /* Vibrant green with good visibility */
+  --success-light: #065f46;   /* Deep green for subtle backgrounds */
+  --warning: #f59e0b;         /* Orange-amber for better visibility */
+  --warning-light: #78350f;   /* Dark brown background for warning elements */
+  --danger: #ef4444;          /* Bright red for critical actions */
+  --danger-light: #991b1b;    /* Deep red background for error states */
+  --info: #38bdf8;            /* Bright blue for informational elements */
+  --info-light: #0c4a6e;      /* Deep blue background for info elements */
 
-  /* Backgrounds & Text - Layered approach for depth */
-  --body-bg: #121212;         /* Near Black - standard dark mode */
-  --card-bg: #1e1e1e;         /* Slightly lighter than body bg */
-  --card-bg-hover: #252525;   /* Slightly lighter than card bg for hover */
-  --text-primary: #f9fafb;    /* Almost white - better readability */
-  --text-secondary: #e5e7eb;  /* Light Gray - better contrast */
-  --text-tertiary: #9ca3af;   /* Medium Gray - for less important text */
+  /* Backgrounds & Text - Improved contrast and readability */
+  --body-bg: #0f172a;         /* Deep blue-black - easier on eyes than pure black */
+  --card-bg: #1e293b;         /* Dark blue-gray for cards and content areas */
+  --card-bg-hover: #334155;   /* Lighter blue-gray for hover states */
+  --text-primary: #f8fafc;    /* Off-white - prevents eye strain */
+  --text-secondary: #e2e8f0;  /* Light gray with good contrast */
+  --text-tertiary: #cbd5e1;   /* Medium gray that remains readable */
 
   /* Borders & Dividers */
-  --border-color: #333333;    /* Darker border - subtle in dark mode */
-  --border-hover: #4b5563;    /* Lighter for hover states */
+  --border-color: #475569;    /* Medium blue-gray border - more visible */
+  --border-hover: #64748b;    /* Lighter border for hover states */
 
   /* Shadows & Misc */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 6px 10px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 6px 10px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.8);
   --primary-rgb: 96, 165, 250;  /* RGB for #60a5fa */
   
   /* Gray Scale - Dark Mode adjusted */
-  --gray-100: #1f2937;
-  --gray-200: #374151;
-  --gray-300: #4b5563;
-  --gray-400: #6b7280;
-  --gray-500: #9ca3af;
-  --gray-600: #d1d5db;
-  --gray-700: #e5e7eb;
-  --gray-800: #f3f4f6;
-  --gray-900: #f9fafb;
+  --gray-100: #1e293b;
+  --gray-200: #334155;
+  --gray-300: #475569;
+  --gray-400: #64748b;
+  --gray-500: #94a3b8;
+  --gray-600: #cbd5e1;
+  --gray-700: #e2e8f0;
+  --gray-800: #f1f5f9;
+  --gray-900: #f8fafc;
 }
 
 /* Smooth Transitions */
@@ -270,22 +340,21 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {
   background-color: var(--card-bg-hover);
 }
 
-/* Button Styles - Enhanced for accessibility and dark mode */
+/* Modernized Buttons */
 .btn-udemy {
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  border-radius: 6px;
-  padding: 0.625rem 1.25rem;
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-udemy-primary {
@@ -297,9 +366,8 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {
 .btn-udemy-primary:hover, .btn-udemy-primary:focus {
   background-color: var(--primary-dark);
   border-color: var(--primary-dark);
-  color: white;
-  text-decoration: none;
-  box-shadow: 0 0.125rem 0.375rem rgba(var(--primary-rgb), 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(var(--primary-rgb), 0.25);
 }
 
 .btn-udemy-secondary {
@@ -308,22 +376,11 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {
   border-color: var(--border-color);
 }
 
-.dark-mode .btn-udemy-secondary {
-  color: var(--text-secondary);
-  border-color: var(--border-color);
-}
-
 .btn-udemy-secondary:hover, .btn-udemy-secondary:focus {
-  background-color: var(--gray-200);
   color: var(--primary);
   border-color: var(--primary);
-  text-decoration: none;
-}
-
-.dark-mode .btn-udemy-secondary:hover, .dark-mode .btn-udemy-secondary:focus {
-  background-color: var(--gray-100);
-  color: var(--primary);
-  border-color: var(--primary-dark);
+  background-color: rgba(var(--primary-rgb), 0.04);
+  transform: translateY(-1px);
 }
 
 /* Accessible focus styles */
@@ -620,55 +677,44 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {
   border-color: rgba(var(--info), 0.1);
 }
 
-/* Form Controls */
-.form-input,
-.form-select,
-.form-textarea {
+/* Modernized Form Elements */
+.form-control {
   display: block;
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.75rem 1rem;
   font-size: 0.9375rem;
+  font-weight: 400;
   line-height: 1.5;
   color: var(--text-primary);
-  background-color: var(--card-bg);
+  background-color: var(--input-bg);
   background-clip: padding-box;
   border: 1px solid var(--border-color);
   border-radius: 0.375rem;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
+.form-control:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
   outline: 0;
 }
 
-.dark-mode .form-input,
-.dark-mode .form-select,
-.dark-mode .form-textarea {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.dark-mode .form-input:focus,
-.dark-mode .form-select:focus,
-.dark-mode .form-textarea:focus {
-  background-color: rgba(0, 0, 0, 0.3);
-  border-color: var(--primary);
+.form-control::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 
 .form-label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
-.dark-mode .form-label {
-  color: var(--text-secondary);
+.form-text {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
 }
 
 /* Table styles */
