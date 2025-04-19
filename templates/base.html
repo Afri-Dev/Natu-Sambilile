@@ -19,6 +19,10 @@
     />
     <link
       rel="stylesheet"
+      href="{{ url_for('static', filename='css/theme-toggle.css') }}"
+    />
+    <link
+      rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <style>
@@ -142,20 +146,30 @@
             </div>
             {% endif %}
 
-            <!-- Dark Mode Toggle -->
-            <div class="dark-mode-toggle focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 rounded-full" id="darkModeToggle" title="Toggle dark mode" tabindex="0">
-              <span class="sr-only">Toggle dark mode</span>
-          </div>
-
             <!-- Mobile Menu Button -->
-          <div class="-mr-2 flex items-center sm:hidden">
+            <div class="-mr-2 flex items-center sm:hidden">
               <button type="button" @click="mobileMenu = !mobileMenu" class="inline-flex items-center justify-center p-2 rounded-md text-text-secondary hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary mobile-menu-button">
                 <span class="sr-only">Open main menu</span>
-              <i class="fas fa-bars"></i>
-            </button>
+                <i class="fas fa-bars"></i>
+              </button>
             </div>
+            
+            <!-- Theme Toggle (in header) -->
+            <button id="themeToggle" class="theme-toggle in-header hidden sm:flex" aria-label="Toggle theme">
+              <i class="{{ 'fas fa-sun' if request.cookies.get('darkMode') == 'true' else 'fas fa-moon' }}" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
+      </div>
+
+      <!-- Theme Toggle (fixed position for mobile) -->
+      <button id="themeToggleMobile" class="theme-toggle sm:hidden" aria-label="Toggle theme">
+        <i class="{{ 'fas fa-sun' if request.cookies.get('darkMode') == 'true' else 'fas fa-moon' }}" aria-hidden="true"></i>
+      </button>
+      
+      <!-- Old toggle (hidden) for backward compatibility -->
+      <div class="dark-mode-toggle focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 rounded-full" id="darkModeToggle" title="Toggle dark mode" tabindex="0" style="display: none;">
+        <span class="sr-only">Toggle dark mode</span>
       </div>
 
       <!-- Mobile menu -->
@@ -290,6 +304,7 @@
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/ui-enhancements.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
     <script>
       // Initialize dark mode immediately to prevent FOUC
       (function() {
@@ -305,6 +320,9 @@
           mobileMenu: false,
         }));
       });
+
+      // URL for server-side theme preference storage
+      const setDarkModeUrl = "{{ url_for('set_dark_mode') }}";
     </script>
   </body>
 </html>

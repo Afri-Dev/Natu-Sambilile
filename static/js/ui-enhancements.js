@@ -1,34 +1,16 @@
 // UI Enhancement Scripts for TechHub
 
-// Dark mode functionality
+// NOTE: Dark mode functionality has been moved to theme-toggle.js
+// This function is kept for backwards compatibility but does nothing
 function initDarkMode() {
-  const darkModeToggle = document.getElementById('darkModeToggle');
-  
-  // Check for saved preference
-  const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const savedMode = localStorage.getItem('darkMode');
-  
-  // Apply dark mode based on saved preference or system preference
-  if (savedMode === 'true' || (savedMode === null && prefersDarkMode)) {
-    document.body.classList.add('dark-mode');
-  }
-  
-  // Toggle dark mode when the button is clicked
-  if (darkModeToggle) {
-    darkModeToggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark-mode');
-      
-      // Save preference to localStorage
-      const isDarkMode = document.body.classList.contains('dark-mode');
-      localStorage.setItem('darkMode', isDarkMode);
-    });
-  }
+  // Dark mode is now handled by theme-toggle.js
+  console.log("Dark mode functionality moved to theme-toggle.js");
 }
 
 // Animation on scroll
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize dark mode
-  initDarkMode();
+  // Do NOT initialize dark mode here anymore
+  // initDarkMode();
   
   // Add animation classes to elements as they scroll into view
   const observerOptions = {
