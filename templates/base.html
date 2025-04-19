@@ -77,18 +77,18 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Logo -->
-          <div class="flex-shrink-0 flex items-center">
+            <div class="flex-shrink-0 flex items-center">
             <a href="{{ url_for('home') }}" class="text-2xl font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm">
               <i class="fas fa-rocket mr-2"></i>TechHub
-            </a>
-          </div>
+              </a>
+            </div>
 
           <!-- Categories Link -->
           <div class="hidden sm:ml-4 sm:flex">
             <a href="{{ url_for('courses') }}" class="text-sm font-medium text-text-secondary hover:text-primary transition-colors px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
               Categories
             </a>
-          </div>
+            </div>
 
           <!-- Search Bar -->
           <div class="flex-grow mx-4 hidden sm:block">
@@ -145,14 +145,14 @@
             <!-- Dark Mode Toggle -->
             <div class="dark-mode-toggle focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 rounded-full" id="darkModeToggle" title="Toggle dark mode" tabindex="0">
               <span class="sr-only">Toggle dark mode</span>
-            </div>
+          </div>
 
             <!-- Mobile Menu Button -->
-            <div class="-mr-2 flex items-center sm:hidden">
+          <div class="-mr-2 flex items-center sm:hidden">
               <button type="button" @click="mobileMenu = !mobileMenu" class="inline-flex items-center justify-center p-2 rounded-md text-text-secondary hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary mobile-menu-button">
                 <span class="sr-only">Open main menu</span>
-                <i class="fas fa-bars"></i>
-              </button>
+              <i class="fas fa-bars"></i>
+            </button>
             </div>
           </div>
         </div>
@@ -217,14 +217,14 @@
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %} 
       {% if messages %} 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         {% for category, message in messages %}
         <div class="p-4 mb-4 rounded-md shadow-md {% if category == 'error' %} bg-red-100 border border-red-400 text-red-700 {% elif category == 'success' %} bg-green-100 border border-green-400 text-green-700 {% else %} bg-yellow-100 border border-yellow-400 text-yellow-700 {% endif %} dark:bg-opacity-20 dark:border-opacity-40 dark:text-white fade-in-up" role="alert">
-          <div class="flex">
-            <div class="flex-shrink-0">
+        <div class="flex">
+          <div class="flex-shrink-0">
               <i class="fas {% if category == 'error' %}fa-times-circle{% elif category == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %} mr-2"></i>
-            </div>
-            <div class="ml-3">
+          </div>
+          <div class="ml-3">
               <p class="text-sm font-medium">{{ message }}</p>
             </div>
           </div>
@@ -238,7 +238,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
       {% block content %}{% endblock %}
     </main>
-    
+
     <!-- Footer (Basic Placeholder) -->
     <footer class="bg-primary text-gray-100 mt-16">
       <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">

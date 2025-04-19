@@ -1,0 +1,60 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}{{ 'Edit' if question else 'New' }} Question{% endblock %}
+
+{% block admin_title %}{{ 'Edit' if question else 'New' }} Question{% endblock %}
+
+{% block admin_content %}
+<section class="py-6">
+    <div class="container">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">{{ 'Edit Question' if question else 'Create New Question' }}</h2>
+                <p class="text-sm text-text-secondary">For Quiz: {{ quiz.title }}</p>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mb-4">
+                        <div>
+                            <span>{{ message }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+                
+                <form method="POST">
+                    {{ form.csrf_token }}
+                    
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Question Text -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Question Text</span>
+                            </label>
+                            {{ form.question_text(class="textarea textarea-bordered h-32") }}
+                            {% if form.question_text.errors %}
+                            <div class="text-error mt-1">
+                                {% for error in form.question_text.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex justify-between mt-4">
+                            <a href="{{ url_for('admin_edit_quiz', quiz_id=quiz.id) }}" class="btn btn-outline">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if question %}Update{% else %}Create{% endif %} Question
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

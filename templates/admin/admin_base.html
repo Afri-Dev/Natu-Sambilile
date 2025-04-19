@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" class="{{ 'dark-mode' if session.get('dark_mode') else '' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %} - TechHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-ui.css') }}">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Backup Font Awesome Kit -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        /* Admin specific styles */
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--body-bg);
+        }
+        .admin-sidebar {
+            width: 280px;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        .admin-sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+        .admin-sidebar nav {
+            padding: 1.5rem;
+        }
+        .admin-sidebar nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .admin-sidebar nav a {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .admin-sidebar nav a:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+        .admin-sidebar nav a.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        .admin-sidebar nav a i {
+            margin-right: 0.75rem;
+            width: 20px; /* Align icons */
+            text-align: center;
+        }
+        .admin-main-content {
+            flex-grow: 1;
+            padding: 0;
+            overflow-y: auto;
+            background-color: var(--body-bg);
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        .admin-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .admin-content-wrapper {
+            padding: 2rem;
+        }
+        .user-menu {
+            position: relative;
+        }
+        .user-menu-dropdown {
+            position: absolute;
+            right: 0;
+            margin-top: 0.5rem;
+            width: 240px;
+            border-radius: 0.5rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            z-index: 50;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .user-menu-dropdown.active {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            color: var(--text-primary);
+            transition: background-color 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background-color: var(--gray-100);
+        }
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+            text-align: center;
+        }
+        .dropdown-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 0.5rem 0;
+        }
+        
+        /* Fade alerts */
+        .alert {
+            animation: fadeOut 5s forwards;
+            animation-delay: 3s;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+        
+        /* Mobile sidebar toggle */
+        .sidebar-toggle {
+            display: none;
+        }
+        
+        /* Card and stats */
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Icon styles */
+        .fas, .fa, .fa-solid, .far, .fa-regular, .fab, .fa-brands {
+            display: inline-block !important;
+            font-size: inherit;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Action icon styling */
+        .action-icon {
+            font-size: 1rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Responsiveness */
+        @media (max-width: 1024px) {
+            .admin-sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                z-index: 100;
+            }
+            .admin-sidebar.active {
+                left: 0;
+            }
+            .sidebar-toggle {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 101;
+                background-color: var(--primary);
+                color: white;
+                border: none;
+                border-radius: 0.25rem;
+                padding: 0.5rem;
+                cursor: pointer;
+                box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+            }
+            .admin-overlay {
+                position: fixed;
+                inset: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 99;
+                display: none;
+            }
+            .admin-overlay.active {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body class="{{ 'dark-mode' if session.get('dark_mode') else '' }}">
+    <button id="sidebarToggle" class="sidebar-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div id="adminOverlay" class="admin-overlay"></div>
+    
+    <aside id="adminSidebar" class="admin-sidebar">
+        <div class="logo">
+            <i class="fas fa-rocket mr-3"></i>
+            TechHub Admin
+        </div>
+        <nav>
+            <ul>
+                <li>
+                    <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if request.endpoint == 'admin_dashboard' else '' }}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="{{ 'active' if request.endpoint == 'admin_users' else '' }}">
+                        <i class="fas fa-users"></i> Users
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if 'course' in request.endpoint else '' }}">
+                        <i class="fas fa-book-open"></i> Courses
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin_add_course') }}" class="{{ 'active' if request.endpoint == 'admin_add_course' else '' }}">
+                        <i class="fas fa-plus-circle"></i> Add Course
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="{{ 'active' if request.endpoint == 'admin_analytics' else '' }}">
+                        <i class="fas fa-chart-line"></i> Analytics
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="{{ 'active' if request.endpoint == 'admin_settings' else '' }}">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="mt-auto p-4 border-t border-border-color">
+            <a href="{{ url_for('home') }}" class="text-sm text-text-secondary hover:text-primary flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Site
+            </a>
+        </div>
+    </aside>
+
+    <main class="admin-main-content">
+        <div class="admin-header">
+            <h1>{% block admin_title %}{% endblock %}</h1>
+            <div class="flex items-center space-x-4">
+                <div class="dark-mode-toggle focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 rounded-full" id="darkModeToggle" title="Toggle dark mode" tabindex="0"></div>
+                
+                <div class="user-menu" id="userMenu">
+                    <button class="flex items-center text-text-primary hover:text-primary" id="userMenuButton">
+                        <span class="mr-2 text-sm font-medium hidden md:inline">{{ current_user.username }}</span>
+                        <img class="h-8 w-8 rounded-full bg-gray-300 border border-border-color" src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=random&color=fff" alt="{{ current_user.username }}'s avatar"/>
+                        <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                    </button>
+                    
+                    <div class="user-menu-dropdown" id="userMenuDropdown">
+                        <div class="px-4 py-3 text-sm border-b border-border-color">
+                            <div class="font-medium text-text-primary">{{ current_user.username }}</div>
+                            <div class="text-text-secondary">{{ current_user.email }}</div>
+                        </div>
+                        
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        
+                        <div class="dropdown-divider"></div>
+                        
+                        <a href="{{ url_for('logout') }}" class="dropdown-item text-danger">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="admin-content-wrapper">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-6 space-y-2">
+                    {% for category, message in messages %}
+                        <div class="alert px-4 py-3 rounded-md shadow-sm {{ 'bg-green-100 text-green-800 dark:bg-green-800 dark:bg-opacity-20 dark:text-green-100' if category == 'success' else 'bg-red-100 text-red-800 dark:bg-red-800 dark:bg-opacity-20 dark:text-red-100' }}" role="alert">
+                            <div class="flex items-center">
+                                <i class="fas {{ 'fa-check-circle' if category == 'success' else 'fa-exclamation-circle' }} mr-3"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block admin_content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <script>
+        // Dark Mode Toggle Logic
+        const toggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDarkMode = body.classList.contains('dark-mode');
+            // Send preference to server to store in session
+            fetch('{{ url_for("set_dark_mode") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dark_mode: isDarkMode })
+            });
+        });
+
+        // User dropdown menu
+        const userMenuButton = document.getElementById('userMenuButton');
+        const userMenuDropdown = document.getElementById('userMenuDropdown');
+
+        userMenuButton.addEventListener('click', () => {
+            userMenuDropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!userMenuButton.contains(event.target) && !userMenuDropdown.contains(event.target)) {
+                userMenuDropdown.classList.remove('active');
+            }
+        });
+
+        // Mobile sidebar toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const adminSidebar = document.getElementById('adminSidebar');
+        const adminOverlay = document.getElementById('adminOverlay');
+
+        sidebarToggle.addEventListener('click', () => {
+            adminSidebar.classList.toggle('active');
+            adminOverlay.classList.toggle('active');
+        });
+
+        adminOverlay.addEventListener('click', () => {
+            adminSidebar.classList.remove('active');
+            adminOverlay.classList.remove('active');
+        });
+
+        // Handle auto-fading alerts
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 8000);
+        });
+    </script>
+</body>
+</html> 

@@ -1,36 +1,86 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Learning Platform</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Admin Login - TechHub Learning Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-ui.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: var(--body-bg);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .admin-login-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            border-radius: 0.5rem;
+        }
+        .form-input {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+            outline: none;
+        }
+        .login-btn {
+            background-color: var(--primary);
+            color: white;
+            transition: background-color 0.2s ease;
+        }
+        .login-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        .back-btn {
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .back-btn:hover {
+            background-color: var(--gray-100);
+            color: var(--text-primary);
+        }
+        .divider {
+            border-color: var(--border-color);
+        }
+        .divider-text {
+            background-color: var(--card-bg);
+            color: var(--text-secondary);
+        }
+    </style>
 </head>
-<body class="h-full">
+<body class="{{ 'dark-mode' if session.get('dark_mode') else '' }}" class="h-full">
     <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div class="sm:mx-auto sm:w-full sm:max-w-md">
             <!-- Logo -->
             <div class="flex justify-center">
                 <div class="text-center">
-                    <i class="fas fa-user-shield text-4xl text-indigo-600"></i>
+                    <i class="fas fa-user-shield text-4xl" style="color: var(--primary);"></i>
                 </div>
             </div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 class="mt-6 text-center text-3xl font-extrabold" style="color: var(--text-primary);">
                 Admin Login
             </h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
+            <p class="mt-2 text-center text-sm" style="color: var(--text-secondary);">
                 Restricted access for administrators only
             </p>
         </div>
 
         <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-            <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div class="admin-login-card py-8 px-4 sm:rounded-lg sm:px-10">
                 <!-- Flash Messages -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="mb-4 rounded-md p-4 {% if category == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+                            <div class="mb-4 rounded-md p-4" style="background-color: {{ 'var(--danger-light)' if category == 'error' else 'var(--success-light)' }}; color: {{ 'var(--danger)' if category == 'error' else 'var(--success)' }};">
                                 <p class="text-sm">{{ message }}</p>
                             </div>
                         {% endfor %}
@@ -39,7 +89,7 @@
 
                 <form class="space-y-6" action="{{ url_for('admin_login') }}" method="POST">
                     <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700">
+                        <label for="email" class="block text-sm font-medium" style="color: var(--text-primary);">
                             Email address
                         </label>
                         <div class="mt-1">
@@ -48,12 +98,12 @@
                                    type="email" 
                                    autocomplete="email" 
                                    required 
-                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                   class="form-input appearance-none block w-full px-3 py-2 rounded-md shadow-sm placeholder-gray-400 sm:text-sm">
                         </div>
                     </div>
 
                     <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700">
+                        <label for="password" class="block text-sm font-medium" style="color: var(--text-primary);">
                             Password
                         </label>
                         <div class="mt-1">
@@ -62,13 +112,13 @@
                                    type="password" 
                                    autocomplete="current-password" 
                                    required 
-                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                   class="form-input appearance-none block w-full px-3 py-2 rounded-md shadow-sm placeholder-gray-400 sm:text-sm">
                         </div>
                     </div>
 
                     <div>
                         <button type="submit" 
-                                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                class="login-btn w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium">
                             Sign in
                         </button>
                     </div>
@@ -77,10 +127,10 @@
                 <div class="mt-6">
                     <div class="relative">
                         <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-gray-300"></div>
+                            <div class="w-full border-t divider"></div>
                         </div>
                         <div class="relative flex justify-center text-sm">
-                            <span class="px-2 bg-white text-gray-500">
+                            <span class="px-2 divider-text">
                                 Back to main site
                             </span>
                         </div>
@@ -88,7 +138,7 @@
 
                     <div class="mt-6">
                         <a href="{{ url_for('home') }}" 
-                           class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                           class="back-btn w-full flex justify-center items-center px-4 py-2 border shadow-sm text-sm font-medium rounded-md">
                             <i class="fas fa-home mr-2"></i>
                             Return to Homepage
                         </a>
@@ -97,5 +147,18 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Check for system dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !document.body.classList.contains('dark-mode')) {
+            document.body.classList.add('dark-mode');
+            // Send dark mode preference to server
+            fetch('{{ url_for("set_dark_mode") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dark_mode: true })
+            });
+        }
+    </script>
 </body>
 </html>

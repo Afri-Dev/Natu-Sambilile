@@ -1,0 +1,510 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Manage Lessons - {{ course.title }}{% endblock %}
+
+{% block admin_title %}Course Lessons Management{% endblock %}
+
+{% block admin_content %}
+<section class="py-6">
+    <div class="container">
+        <div class="hero bg-base-200 rounded-lg mb-6">
+            <div class="hero-content flex-col lg:flex-row">
+                <div class="text-center lg:text-left">
+                    <h1 class="text-3xl font-bold">{{ course.title }}</h1>
+                    <p class="py-2">Manage lessons and quizzes for this course.</p>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-arrow-left action-icon mr-2"></i> Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('admin_new_lesson', course_id=course.id) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus action-icon mr-2"></i> Add New Lesson
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} mb-4">
+                <div>
+                    <span>{{ message }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Lessons ({{ lessons|length }})</h2>
+                {% if lessons %}
+                <div class="table-responsive mt-4">
+                    <table class="table table-striped lessons-table">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th width="5%">#</th>
+                                <th width="40%">Title</th>
+                                <th width="20%">Duration</th>
+                                <th width="20%">Quiz</th>
+                                <th width="15%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lessons-tbody">
+                            {% for lesson in lessons %}
+                            <tr class="lesson-row" data-lesson-id="{{ lesson.id }}">
+                                <td><span>{{ lesson.lesson_number }}</span></td>
+                                <td>{{ lesson.title }}</td>
+                                <td>
+                                {% if hasattr(lesson, 'get_duration') %}
+                                    {{ lesson.get_duration() }} minutes
+                                {% else %}
+                                    {{ get_lesson_duration(lesson) }} minutes
+                                {% endif %}
+                                </td>
+                                <td>
+                                    {% if hasattr(lesson, 'quiz') and lesson.quiz %}
+                                    <a href="{{ url_for('admin_edit_quiz', quiz_id=lesson.quiz.id) }}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-question-circle action-icon"></i> Edit Quiz
+                                    </a>
+                                    {% else %}
+                                    <a href="{{ url_for('admin_new_quiz', lesson_id=lesson.id) }}" class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-plus-circle action-icon"></i> Add Quiz
+                                    </a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex">
+                                        <a href="{{ url_for('admin_edit_lesson', lesson_id=lesson.id) }}" class="btn btn-primary btn-sm mr-1" title="Edit lesson">
+                                            <i class="fas fa-edit action-icon"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn-sm delete-lesson mr-1" data-lesson-id="{{ lesson.id }}" title="Delete lesson">
+                                            <i class="fas fa-trash action-icon"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm move-up mr-1" title="Move up" {% if loop.first %}disabled{% endif %}>
+                                            <i class="fas fa-chevron-up action-icon"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm move-down" title="Move down" {% if loop.last %}disabled{% endif %}>
+                                            <i class="fas fa-chevron-down action-icon"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <div>
+                        <i class="fas fa-info-circle action-icon mr-2"></i>
+                        <span>No lessons have been added to this course yet. Click the "Add New Lesson" button to create your first lesson.</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger mr-2"></i>Confirm Deletion</h5>
+            <button type="button" class="close close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete this lesson? This action cannot be undone.</p>
+            <form id="deleteForm" method="post">
+                <div class="text-right">
+                    <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash action-icon mr-1"></i>Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay" class="hidden">
+    <div class="spinner"></div>
+    <div class="loading-text">Processing...</div>
+</div>
+
+<!-- Toast container -->
+<div id="toastContainer"></div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM elements - cache all selectors
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const toastContainer = document.getElementById('toastContainer');
+        const lessonCards = document.querySelectorAll('.lesson-row');
+        const deleteButtons = document.querySelectorAll('.delete-lesson');
+        const moveUpButtons = document.querySelectorAll('.move-up');
+        const moveDownButtons = document.querySelectorAll('.move-down');
+        const toggleContentButtons = document.querySelectorAll('.toggle-content-btn');
+        
+        // Show/hide loading overlay
+        function showLoading(message = 'Processing...') {
+            document.querySelector('#loadingOverlay .loading-text').textContent = message;
+            loadingOverlay.classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
+        }
+        
+        // Enhanced toast notification system with debouncing
+        const toastQueue = [];
+        let isProcessingToast = false;
+        
+        function processToastQueue() {
+            if (toastQueue.length === 0) {
+                isProcessingToast = false;
+                return;
+            }
+            
+            isProcessingToast = true;
+            const { message, type, duration } = toastQueue.shift();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            toast.innerHTML = `
+                <div class="alert alert-dismissible fade show">
+                    ${message}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto-dismiss after duration
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => {
+                    toast.remove();
+                    processToastQueue();
+                }, 500);
+            }, duration);
+            
+            // Close button functionality
+            toast.querySelector('.close').addEventListener('click', () => {
+                toast.classList.add('fade-out');
+                setTimeout(() => {
+                    toast.remove();
+                    processToastQueue();
+                }, 500);
+            });
+        }
+        
+        function showToast(message, type = 'success', duration = 3000) {
+            toastQueue.push({ message, type, duration });
+            
+            if (!isProcessingToast) {
+                processToastQueue();
+            }
+        }
+        
+        // Optimized AJAX call function
+        function makeAjaxRequest(url, method, data) {
+            return fetch(url, {
+                method: method || 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: data ? JSON.stringify(data) : null
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                return response.json();
+            });
+        }
+        
+        // Delete lesson functionality
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const lessonId = this.closest('tr').getAttribute('data-lesson-id');
+                const lessonTitle = this.getAttribute('data-lesson-title');
+                const deleteForm = document.getElementById('deleteForm');
+                
+                // Update modal content
+                document.getElementById('lessonTitleToDelete').textContent = lessonTitle;
+                
+                // Set the form action with the lesson ID
+                deleteForm.action = "{{ url_for('admin_delete_lesson', lesson_id=0) }}".replace('0', lessonId);
+            });
+        });
+        
+        // Form submission with loading overlay
+        const deleteForm = document.getElementById('deleteForm');
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function(e) {
+                showLoading('Deleting lesson...');
+            });
+        }
+        
+        // Reorder lessons functionality (move up/down)
+        function handleLessonReorder(action, lessonId) {
+            showLoading(`${action === 'up' ? 'Moving lesson up' : 'Moving lesson down'}...`);
+            
+            makeAjaxRequest(
+                "{{ url_for('admin_reorder_lesson', course_id=course.id) }}", 
+                'POST', 
+                { lesson_id: lessonId, direction: action }
+            )
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message || `Lesson ${action === 'up' ? 'moved up' : 'moved down'} successfully`);
+                    
+                    // Refresh the page to show updated order
+                    window.location.reload();
+                } else {
+                    showToast(data.message || 'Failed to reorder lesson', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred while reordering the lesson. Please try again.', 'error');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+        
+        // Move lesson up
+        moveUpButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const lessonId = this.closest('tr').getAttribute('data-lesson-id');
+                handleLessonReorder('up', lessonId);
+            });
+        });
+        
+        // Move lesson down
+        moveDownButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const lessonId = this.closest('tr').getAttribute('data-lesson-id');
+                handleLessonReorder('down', lessonId);
+            });
+        });
+        
+        // Toggle lesson content view with content caching
+        const contentCache = {};
+        
+        toggleContentButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const contentId = this.getAttribute('data-content-id');
+                const contentElement = document.getElementById(contentId);
+                
+                if (contentElement) {
+                    const isVisible = contentElement.style.display !== 'none';
+                    contentElement.style.display = isVisible ? 'none' : 'block';
+                    this.innerHTML = isVisible 
+                        ? '<i class="fas fa-eye action-icon"></i> Show Content' 
+                        : '<i class="fas fa-eye-slash action-icon"></i> Hide Content';
+                }
+            });
+        });
+        
+        // Initialize tooltips with a slight delay for better performance
+        setTimeout(() => {
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+        }, 100);
+    });
+</script>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+    
+    .loading-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 5px;
+        text-align: center;
+    }
+    
+    .hidden {
+        display: none !important;
+    }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-open {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-content {
+        background-color: #fff;
+        margin: auto;
+        padding: 0;
+        border: 1px solid #888;
+        width: 50%;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        max-width: 500px;
+    }
+    
+    .modal-header {
+        padding: 15px;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+    }
+
+    .lessons-table th, .lessons-table td {
+        vertical-align: middle;
+    }
+    
+    .lessons-table .btn {
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+    /* Loading overlay */
+    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        flex-direction: column;
+    }
+    
+    #loadingOverlay.hidden {
+        display: none;
+    }
+    
+    .spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+        color: white;
+        font-size: 18px;
+    }
+    
+    /* Toast notifications */
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 250px;
+        max-width: 350px;
+        animation: slide-in 0.3s ease-out;
+    }
+    
+    .toast.fade-out {
+        animation: fade-out 0.5s ease-out forwards;
+    }
+    
+    @keyframes slide-in {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes fade-out {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    
+    .toast .alert {
+        margin-bottom: 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .toast-success .alert {
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+    
+    .toast-error .alert {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+    
+    .toast-info .alert {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border-color: #bee5eb;
+    }
+</style>
+{% endblock %} 

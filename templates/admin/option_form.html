@@ -1,0 +1,75 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}{{ 'Edit' if option else 'New' }} Option{% endblock %}
+
+{% block admin_title %}{{ 'Edit' if option else 'New' }} Option{% endblock %}
+
+{% block admin_content %}
+<section class="py-6">
+    <div class="container">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">{{ 'Edit Option' if option else 'Create New Option' }}</h2>
+                <p class="text-sm text-text-secondary">For Question: {{ question.question_text }}</p>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mb-4">
+                        <div>
+                            <span>{{ message }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+                
+                <form method="POST">
+                    {{ form.csrf_token }}
+                    
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Option Text -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Option Text</span>
+                            </label>
+                            {{ form.option_text(class="textarea textarea-bordered h-24") }}
+                            {% if form.option_text.errors %}
+                            <div class="text-error mt-1">
+                                {% for error in form.option_text.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Is Correct -->
+                        <div class="form-control">
+                            <label class="cursor-pointer label">
+                                {{ form.is_correct(class="checkbox checkbox-primary") }}
+                                <span class="label-text ml-2">This is the correct answer</span>
+                            </label>
+                            {% if form.is_correct.errors %}
+                            <div class="text-error mt-1">
+                                {% for error in form.is_correct.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex justify-between mt-4">
+                            <a href="{{ url_for('admin_edit_quiz', quiz_id=question.quiz_id) }}" class="btn btn-outline">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if option %}Update{% else %}Create{% endif %} Option
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

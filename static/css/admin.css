@@ -1,0 +1,219 @@
+/* Optimized Admin Dashboard CSS */
+
+/* Base styles with reduced specificity for better performance */
+:root {
+  --primary: #4e73df;
+  --success: #1cc88a;
+  --info: #36b9cc;
+  --warning: #f6c23e;
+  --danger: #e74a3b;
+  --dark: #5a5c69;
+  --light: #f8f9fc;
+  --white: #fff;
+  --gray: #858796;
+}
+
+/* Layout optimizations */
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 56px);
+}
+
+.content {
+  flex: 1;
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* Stats cards with optimized flexbox layout */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.35rem;
+  box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.1);
+  padding: 1.25rem;
+  background-color: var(--white);
+  transition: transform 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+}
+
+/* Optimize card layout */
+.card {
+  box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  border: none;
+  border-radius: 0.35rem;
+}
+
+.card-header {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+/* Optimized responsive table */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+}
+
+.table th {
+  font-weight: bold;
+  text-align: left;
+  border-bottom: 2px solid #e3e6f0;
+  padding: 0.75rem;
+  vertical-align: top;
+}
+
+.table td {
+  padding: 0.75rem;
+  vertical-align: top;
+  border-top: 1px solid #e3e6f0;
+}
+
+/* Optimized loading overlay - hardware accelerated */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease-out;
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+.loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--white);
+  animation: spin 1s linear infinite;
+  will-change: transform;
+}
+
+.loading-text {
+  color: var(--white);
+  margin-top: 1rem;
+  font-size: 1.25rem;
+}
+
+/* Toast notification system - hardware accelerated */
+#toastContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9998;
+  max-width: 350px;
+}
+
+.toast {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  margin-bottom: 10px;
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.toast.fade-out {
+  animation: fadeOut 0.5s ease-out forwards;
+}
+
+/* Optimized animations with reduced painting */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Responsive design with optimized media queries */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .card-header .btn {
+    margin-top: 0.75rem;
+    align-self: flex-start;
+  }
+}
+
+/* Print styles for reports */
+@media print {
+  .sidebar, .navbar, .footer, .loading-overlay, #toastContainer {
+    display: none !important;
+  }
+  
+  .content-wrapper {
+    margin-left: 0 !important;
+    min-height: auto !important;
+  }
+  
+  .card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .stats-grid {
+    display: block;
+  }
+  
+  .stat-card {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+    page-break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+} 

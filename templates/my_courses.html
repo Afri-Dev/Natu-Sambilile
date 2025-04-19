@@ -5,9 +5,9 @@
 <div class="py-6">
   <h1 class="text-3xl font-bold text-text-primary mb-8">My Learning</h1>
 
-  {% if enrollments %}
+    {% if enrollments %}
   <div class="course-grid">
-    {% for enrollment in enrollments %}
+      {% for enrollment in enrollments %}
     {# Apply card style, but content differs from course browsing card #}
     <div class="bg-card-bg border border-border-color rounded-lg overflow-hidden shadow-sm flex flex-col">
       <div class="p-5 flex-grow flex flex-col">
@@ -15,37 +15,37 @@
           <h3 class="text-lg font-bold text-text-primary hover:text-primary">
             {# Link to the first lesson? Or just display title #}
             {# For now, just title. Add link later if a course detail page exists #}
-            {{ enrollment.course.title }}
-          </h3>
-          <span
+              {{ enrollment.course.title }}
+            </h3>
+            <span
             class="ml-2 flex-shrink-0 px-2 py-0.5 text-xs rounded-full font-medium {% if enrollment.status == 'active' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 {% elif enrollment.status == 'completed' %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 {% else %}bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200{% endif %}"
-          >
-            {{ enrollment.status|title }}
-          </span>
-        </div>
+            >
+              {{ enrollment.status|title }}
+            </span>
+          </div>
 
         {# Placeholder for course image/instructor - Optional #}
         {# <div class="h-32 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div> #}
         {# <p class="text-xs text-text-secondary mb-3">Instructor Name</p> #}
         
         <p class="text-sm text-text-secondary mb-4 line-clamp-2 flex-grow">
-          {{ enrollment.course.description }}
-        </p>
+            {{ enrollment.course.description }}
+          </p>
 
         {# Progress Bar #}
         <div class="mb-4">
           <div class="flex mb-1 items-center justify-between">
             <span class="text-xs font-semibold inline-block text-text-secondary">
-              Progress
-            </span>
+                    Progress
+                  </span>
             <span class="text-xs font-semibold inline-block text-primary">
               {{ "%.0f"|format(enrollment.progress) }}%
-            </span>
-          </div>
+                  </span>
+                </div>
           <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
             <div style="width:{{ enrollment.progress }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary transition-all duration-500 ease-out"></div>
           </div>
-        </div>
+            </div>
 
         {# Link to continue learning (e.g., first uncompleted lesson) #}
         {# This requires finding the first uncompleted lesson in the backend #}
@@ -54,7 +54,7 @@
           <a href="#" class="btn-udemy btn-udemy-primary w-full block text-center text-sm">
             Continue Learning
           </a>
-        </div>
+          </div>
 
         {# Collapsible Lesson List #}
         <div class="mt-4 border-t border-border-color pt-4">
@@ -78,30 +78,30 @@
               {% endfor %}
             </div>
           </details>
-        </div>
+          </div>
 
         {# Unenroll Button #}
         <div class="mt-4 text-center border-t border-border-color pt-3">
            <button onclick="unenrollFromCourse({{ enrollment.course.id }})" 
                    class="text-xs text-red-600 dark:text-red-400 hover:underline">
              Unenroll from course
-           </button>
+            </button>
+          </div>
         </div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
-  {% else %}
+    {% else %}
   <div class="text-center py-16 bg-card-bg border border-border-color rounded-lg shadow-sm">
     <i class="fas fa-book-reader text-5xl text-gray-400 dark:text-gray-500 mb-4"></i>
     <h3 class="text-xl font-semibold text-text-primary mb-2">Start Learning!</h3>
     <p class="text-text-secondary mb-6">You haven't enrolled in any courses yet.</p>
     <a href="{{ url_for('courses') }}" class="btn-udemy btn-udemy-primary">
-      <i class="fas fa-search mr-2"></i>
-      Browse Courses
-    </a>
-  </div>
-  {% endif %}
+        <i class="fas fa-search mr-2"></i>
+        Browse Courses
+      </a>
+    </div>
+    {% endif %}
 </div>
 
 <script>
@@ -111,14 +111,14 @@
       return; // Exit if the user cancels
     }
 
-    fetch(`/unenroll/${courseId}`, {
-      method: "POST",
-      headers: {
+      fetch(`/unenroll/${courseId}`, {
+        method: "POST",
+        headers: {
         // Include CSRF token if using Flask-WTF or similar
         {% raw %}
         // 'X-CSRFToken': '{{ csrf_token() }}',
         {% endraw %}
-        "Content-Type": "application/json",
+          "Content-Type": "application/json",
         "Accept": "application/json"
       },
     })
@@ -135,11 +135,11 @@
         return response.json();
     })
     .then(data => {
-      if (data.status === "success") {
+          if (data.status === "success") {
         // Optionally show a success message before reloading
         // alert(data.message || 'Successfully unenrolled.');
         location.reload(); // Reload the page to reflect changes
-      } else {
+          } else {
         // Use the message from the JSON response
         alert(data.message || "An error occurred while unenrolling.");
       }

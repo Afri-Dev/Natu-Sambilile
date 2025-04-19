@@ -619,7 +619,7 @@ def admin_dashboard():
     
     # Recent activity
     recent_enrollments = Enrollment.query.options(
-        db.joinedload(Enrollment.student),
+        db.joinedload(Enrollment.user),
         db.joinedload(Enrollment.course)
     ).order_by(Enrollment.enrolled_at.desc()).limit(5).all()
     
@@ -708,7 +708,7 @@ def add_sample_courses():
         db.session.add(admin)
         # Commit admin user separately
         try:
-        db.session.commit()
+            db.session.commit()
             print("Admin user created/verified.")
         except Exception as e:
             db.session.rollback()
@@ -752,7 +752,7 @@ def add_sample_courses():
             # print(f"  Course '{course_data['title']}' already exists.")
 
     try:
-    db.session.commit()
+        db.session.commit()
         print(f"Committed course additions/checks.")
     except Exception as e:
         db.session.rollback()
@@ -887,7 +887,7 @@ def admin_new_lesson(course_id):
         )
         
         db.session.add(lesson)
-    db.session.commit()
+        db.session.commit()
 
         flash('Lesson created successfully!', 'success')
         return redirect(url_for('admin_course_lessons', course_id=course_id))
@@ -976,7 +976,7 @@ def admin_reorder_lesson(lesson_id):
     lesson.lesson_number = target_lesson_number
     target_lesson.lesson_number = current_lesson_number
     
-        db.session.commit()
+    db.session.commit()
 
     return jsonify({'success': True, 'message': f'Lesson moved {direction} successfully'})
 
@@ -1042,7 +1042,7 @@ def admin_delete_quiz(quiz_id):
     
     # Delete the quiz
     db.session.delete(quiz)
-        db.session.commit()
+    db.session.commit()
 
     flash('Quiz deleted successfully!', 'success')
     return redirect(url_for('admin_course_lessons', course_id=course_id))
@@ -1054,12 +1054,12 @@ def admin_new_question(quiz_id):
     form = QuizQuestionForm()
     
     if form.validate_on_submit():
-            question = QuizQuestion(
+        question = QuizQuestion(
             quiz_id=quiz_id,
             question_text=form.question_text.data
-            )
-            db.session.add(question)
-            db.session.commit()
+        )
+        db.session.add(question)
+        db.session.commit()
 
         flash('Question added successfully! Now add some options.', 'success')
         return redirect(url_for('admin_edit_quiz', quiz_id=quiz_id))
@@ -1088,12 +1088,12 @@ def admin_new_option(question_id):
     form = QuizOptionForm()
     
     if form.validate_on_submit():
-                option = QuizOption(
+        option = QuizOption(
             quiz_question_id=question_id,
             option_text=form.option_text.data,
             is_correct=form.is_correct.data
-                )
-                db.session.add(option)
+        )
+        db.session.add(option)
         db.session.commit()
         
         flash('Option added successfully!', 'success')
@@ -1109,7 +1109,7 @@ def admin_edit_option(option_id):
     
     if form.validate_on_submit():
         form.populate_obj(option)
-    db.session.commit()
+        db.session.commit()
         
         flash('Option updated successfully!', 'success')
         return redirect(url_for('admin_edit_quiz', quiz_id=option.question.quiz_id))
@@ -1191,7 +1191,7 @@ if __name__ == '__main__':
         
         if SEED_DATA:
             print("SEED_DATA is True. Attempting to add sample data...")
-        add_sample_courses()
+            add_sample_courses()
         else:
             print("SEED_DATA is False. Skipping add_sample_courses.")
     
