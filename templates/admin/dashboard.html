@@ -1,716 +1,735 @@
-{% extends "admin/admin_base.html" %}
-
-{% block title %}Admin Dashboard{% endblock %}
-{% block admin_title %}Admin Dashboard{% endblock %}
-
-{% block admin_content %}
-<!-- Admin Hero Section -->
-<div class="bg-primary text-white rounded-lg mb-8 overflow-hidden">
-    <div class="px-6 py-8 relative">
-        <div class="max-w-3xl relative z-10">
-            <h1 class="text-3xl font-bold mb-2">Welcome to your Dashboard</h1>
-            <p class="text-lg text-white opacity-90 mb-6">Manage your courses, students, and analyze platform performance all from one place.</p>
-            <div class="flex space-x-3">
-                <a href="{{ url_for('admin_add_course') }}" class="bg-white text-primary font-medium px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors flex items-center">
-                    <i class="fas fa-plus-circle mr-2"></i> Add New Course
-                </a>
-                <a href="#courseManagement" class="bg-primary-dark bg-opacity-30 text-white border border-white border-opacity-30 px-4 py-2 rounded-md hover:bg-opacity-50 transition-colors flex items-center">
-                    <i class="fas fa-tasks mr-2"></i> Manage Courses
-                </a>
-            </div>
-        </div>
-        <!-- Decorative Elements -->
-        <div class="absolute right-0 top-0 h-full w-1/3 overflow-hidden opacity-10">
-            <div class="absolute -right-10 top-10 w-64 h-64 rounded-full bg-white"></div>
-            <div class="absolute right-40 bottom-10 w-32 h-32 rounded-full bg-white"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Stats Overview -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="stat-card hover:shadow-lg">
-        <div class="flex items-center">
-            <div class="p-4 rounded-full bg-primary-light text-primary mr-5">
-                <i class="fas fa-book-open fa-lg"></i>
-            </div>
-            <div>
-                <p class="text-xs text-text-secondary font-medium uppercase">Total Courses</p>
-                <p class="text-3xl font-bold text-text-primary">{{ stats.total_courses }}</p>
-            </div>
-        </div>
-        <div class="mt-4 pt-3 border-t border-border-color">
-            <a href="#courseManagement" class="text-xs text-primary flex items-center hover:underline">
-                View all courses <i class="fas fa-arrow-right ml-1"></i>
-            </a>
-        </div>
-    </div>
-    
-    <div class="stat-card hover:shadow-lg">
-        <div class="flex items-center">
-            <div class="p-4 rounded-full bg-success-light text-success mr-5">
-                <i class="fas fa-users fa-lg"></i>
-            </div>
-            <div>
-                <p class="text-xs text-text-secondary font-medium uppercase">Total Students</p>
-                <p class="text-3xl font-bold text-text-primary">{{ stats.total_students }}</p>
-            </div>
-        </div>
-        <div class="mt-4 pt-3 border-t border-border-color">
-            <a href="#" class="text-xs text-success flex items-center hover:underline">
-                View all students <i class="fas fa-arrow-right ml-1"></i>
-            </a>
-        </div>
-    </div>
-    
-    <div class="stat-card hover:shadow-lg">
-        <div class="flex items-center">
-            <div class="p-4 rounded-full bg-warning-light text-warning mr-5">
-                <i class="fas fa-user-graduate fa-lg"></i>
-            </div>
-            <div>
-                <p class="text-xs text-text-secondary font-medium uppercase">Enrollments</p>
-                <p class="text-3xl font-bold text-text-primary">{{ stats.total_enrollments }}</p>
-            </div>
-        </div>
-        <div class="mt-4 pt-3 border-t border-border-color">
-            <a href="#" class="text-xs text-warning flex items-center hover:underline">
-                View enrollment details <i class="fas fa-arrow-right ml-1"></i>
-            </a>
-        </div>
-    </div>
-    
-    <div class="stat-card hover:shadow-lg">
-        <div class="flex items-center">
-            <div class="p-4 rounded-full bg-accent-light text-accent mr-5">
-                <i class="fas fa-graduation-cap fa-lg"></i>
-            </div>
-            <div>
-                <p class="text-xs text-text-secondary font-medium uppercase">Completion Rate</p>
-                <div class="flex items-end">
-                    <p class="text-3xl font-bold text-text-primary">{{ stats.completion_rate }}%</p>
-                    <span class="text-xs text-success ml-2 mb-1">
-                        <i class="fas fa-arrow-up"></i> 2.5%
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="mt-4 pt-3 border-t border-border-color">
-            <a href="#" class="text-xs text-accent flex items-center hover:underline">
-                View analytics <i class="fas fa-arrow-right ml-1"></i>
-            </a>
-        </div>
-    </div>
-</div>
-
-<!-- Analytics & Quick Actions Row -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <!-- Enrollment Chart -->
-    <div class="lg:col-span-2 stat-card overflow-hidden p-0">
-        <div class="px-5 py-4 border-b border-border-color flex justify-between items-center">
-            <h2 class="text-md font-medium text-text-primary flex items-center">
-                <i class="fas fa-chart-line text-primary mr-2"></i> Enrollment Trends
-            </h2>
-            <div>
-                <span class="text-xs text-text-secondary">Last 12 months</span>
-            </div>
-        </div>
-        <div class="p-5">
-            <canvas id="enrollmentChart" height="250"></canvas>
-        </div>
-    </div>
-    
-    <!-- Quick Actions Panel -->
-    <div class="stat-card p-0 overflow-hidden">
-        <div class="px-5 py-4 border-b border-border-color">
-            <h2 class="text-md font-medium text-text-primary flex items-center">
-                <i class="fas fa-bolt text-warning mr-2"></i> Quick Actions
-            </h2>
-        </div>
-        <div class="p-0">
-            <ul class="divide-y divide-border-color">
-                <li>
-                    <a href="{{ url_for('admin_add_course') }}" class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <div class="w-10 h-10 bg-primary-light text-primary rounded-full flex items-center justify-center mr-4">
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <div>
-                            <span class="text-text-primary font-medium">Add New Course</span>
-                            <p class="text-xs text-text-secondary mt-1">Create a new course with lessons</p>
-                        </div>
-                        <i class="fas fa-chevron-right ml-auto text-text-secondary"></i>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <div class="w-10 h-10 bg-success-light text-success rounded-full flex items-center justify-center mr-4">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <div>
-                            <span class="text-text-primary font-medium">Add New Student</span>
-                            <p class="text-xs text-text-secondary mt-1">Create a student account</p>
-                        </div>
-                        <i class="fas fa-chevron-right ml-auto text-text-secondary"></i>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <div class="w-10 h-10 bg-warning-light text-warning rounded-full flex items-center justify-center mr-4">
-                            <i class="fas fa-certificate"></i>
-                        </div>
-                        <div>
-                            <span class="text-text-primary font-medium">Generate Certificates</span>
-                            <p class="text-xs text-text-secondary mt-1">For completed courses</p>
-                        </div>
-                        <i class="fas fa-chevron-right ml-auto text-text-secondary"></i>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <div class="w-10 h-10 bg-accent-light text-accent rounded-full flex items-center justify-center mr-4">
-                            <i class="fas fa-download"></i>
-                        </div>
-                        <div>
-                            <span class="text-text-primary font-medium">Export Reports</span>
-                            <p class="text-xs text-text-secondary mt-1">Download platform analytics</p>
-                        </div>
-                        <i class="fas fa-chevron-right ml-auto text-text-secondary"></i>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<!-- Categories Overview -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-    <!-- Popular Categories -->
-    <div class="stat-card p-0 overflow-hidden">
-        <div class="px-5 py-4 border-b border-border-color">
-            <h2 class="text-md font-medium text-text-primary flex items-center">
-                <i class="fas fa-tag text-primary mr-2"></i> Popular Categories
-            </h2>
-        </div>
-        <div class="p-5">
-            <div class="space-y-4">
-                {% for category, count in stats.top_categories.items() %}
-                <div class="border border-border-color rounded-md p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-primary-light flex items-center justify-center mr-3">
-                            <i class="fas fa-folder text-primary text-xs"></i>
-                        </div>
-                        <div class="flex-grow">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-sm font-medium text-text-primary">{{ category }}</span>
-                                <span class="text-xs font-medium bg-primary-light text-primary px-2 py-1 rounded-full">{{ count }} course{% if count != 1 %}s{% endif %}</span>
-                            </div>
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                {% set percentage = (count / stats.total_courses * 100)|round %}
-                                <div class="bg-primary h-2 rounded-full" style="width: {{ percentage }}%"></div>
-                            </div>
-                            <div class="text-xs text-text-secondary mt-1">{{ percentage }}% of all courses</div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% if categories|length > 6 %}
-            <div class="mt-4 text-center">
-                <button class="px-3 py-2 text-xs text-primary border border-primary rounded-md hover:bg-primary-light transition-colors">
-                    View all categories <i class="fas fa-arrow-right ml-1"></i>
-                </button>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Recent Activity -->
-    <div class="stat-card p-0 overflow-hidden">
-        <div class="px-5 py-4 border-b border-border-color">
-            <h2 class="text-md font-medium text-text-primary flex items-center">
-                <i class="fas fa-history text-accent mr-2"></i> Recent Activity
-            </h2>
-        </div>
-        <div class="p-0">
-            <ul class="divide-y divide-border-color">
-                {% if recent_enrollments or recent_completions %}
-                {% for enrollment in recent_enrollments %}
-                <li class="flex items-start p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <div class="h-8 w-8 rounded-full bg-primary-light text-primary flex items-center justify-center flex-shrink-0 mr-3">
-                        <i class="fas fa-user-plus text-xs"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm text-text-primary"><span class="font-medium">New Enrollment:</span> {{ enrollment.student.username }}</p>
-                        <p class="text-xs text-text-secondary mt-1">Enrolled in <span class="font-medium">{{ enrollment.course.title }}</span></p>
-                        <p class="text-xs text-text-secondary mt-1">{{ enrollment.enrolled_at.strftime('%b %d, %Y') }}</p>
-                    </div>
-                </li>
-                {% endfor %}
-                {% for completion in recent_completions %}
-                <li class="flex items-start p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <div class="h-8 w-8 rounded-full bg-success-light text-success flex items-center justify-center flex-shrink-0 mr-3">
-                        <i class="fas fa-check-circle text-xs"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm text-text-primary"><span class="font-medium">Course Completed:</span> {{ completion.student.username }}</p>
-                        <p class="text-xs text-text-secondary mt-1">Completed <span class="font-medium">{{ completion.course.title }}</span></p>
-                        <p class="text-xs text-text-secondary mt-1">{{ completion.enrolled_at.strftime('%b %d, %Y') }}</p>
-                    </div>
-                </li>
-                {% endfor %}
-                {% else %}
-                <li class="py-8 text-center text-text-secondary">
-                    <div class="mb-3">
-                        <i class="fas fa-info-circle text-accent text-xl"></i>
-                    </div>
-                    <p>No recent activity to display</p>
-                    <p class="text-xs mt-1">Check back later for updates</p>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</div>
-
-<!-- Course Management -->
-<div id="courseManagement" class="stat-card p-0 overflow-hidden mb-6">
-    <div class="px-5 py-4 border-b border-border-color flex justify-between items-center">
-        <h2 class="text-lg font-medium text-text-primary flex items-center">
-            <i class="fas fa-book-open text-primary mr-2"></i> Course Management
-        </h2>
-        <a href="{{ url_for('admin_add_course') }}" 
-           class="btn-udemy btn-udemy-primary text-sm">
-            <i class="fas fa-plus mr-2"></i>
-            Add Course
+{% extends "admin/admin_base.html" %} {% block title %}Admin Dashboard -
+LearnHub{% endblock %} {% block content %}
+<!-- Admin Dashboard Content -->
+<div class="p-4 md:p-6">
+  <!-- Admin Hero Section -->
+  <div
+    class="mb-6 bg-gradient-to-r from-primary-light to-info-light dark:from-primary-light/10 dark:to-info-light/10 p-6 rounded-xl shadow-md fade-in-up"
+  >
+    <div
+      class="flex flex-col md:flex-row items-start md:items-center justify-between"
+    >
+      <div class="mb-4 md:mb-0">
+        <h1 class="text-2xl md:text-3xl font-bold text-text-primary mb-2">
+          Welcome to Your Dashboard
+        </h1>
+        <p class="text-text-secondary">
+          Manage your courses, students, and platform performance
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <a
+          href="{{ url_for('admin_add_course') }}"
+          class="btn-udemy-primary flex items-center"
+        >
+          <i class="fas fa-plus-circle mr-2"></i>
+          Add New Course
         </a>
+        <a
+          href="#courseManagement"
+          class="btn-udemy-secondary flex items-center"
+        >
+          <i class="fas fa-book-open mr-2"></i>
+          Manage Courses
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="dashboard-stats mb-6 fade-in-up">
+    <div class="stat-card stagger-item">
+      <div class="dashboard-icon-circle primary">
+        <i class="fas fa-book-open"></i>
+      </div>
+      <div>
+        <div class="stat-value" data-count="{{ stats.total_courses }}">
+          {{ stats.total_courses }}
+        </div>
+        <div class="stat-label">Total Courses</div>
+        <div class="text-xs text-primary mt-2 font-medium">
+          <a href="#courseManagement" class="flex items-center hover:underline">
+            View all <i class="fas fa-arrow-right ml-1 text-xs"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stagger-item">
+      <div class="dashboard-icon-circle success">
+        <i class="fas fa-users"></i>
+      </div>
+      <div>
+        <div class="stat-value" data-count="{{ stats.total_students }}">
+          {{ stats.total_students }}
+        </div>
+        <div class="stat-label">Total Students</div>
+        <div class="text-xs text-success mt-2 font-medium">
+          <a
+            href="{{ url_for('admin_students') }}"
+            class="flex items-center hover:underline"
+          >
+            Manage students <i class="fas fa-arrow-right ml-1 text-xs"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stagger-item">
+      <div class="dashboard-icon-circle info">
+        <i class="fas fa-user-graduate"></i>
+      </div>
+      <div>
+        <div class="stat-value" data-count="{{ stats.enrollments }}">
+          {{ stats.enrollments }}
+        </div>
+        <div class="stat-label">Enrollments</div>
+        <div class="text-xs text-info mt-2 font-medium">
+          <a
+            href="{{ url_for('admin_enrollments') }}"
+            class="flex items-center hover:underline"
+          >
+            View analytics <i class="fas fa-arrow-right ml-1 text-xs"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stagger-item">
+      <div class="dashboard-icon-circle accent">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <div>
+        <div class="stat-value">
+          {{ "%.1f"|format(stats.completion_rate) }}%
+        </div>
+        <div class="stat-label">Completion Rate</div>
+        <div class="text-xs text-accent mt-2 font-medium">
+          <a
+            href="{{ url_for('admin_analytics') }}"
+            class="flex items-center hover:underline"
+          >
+            Full analytics <i class="fas fa-arrow-right ml-1 text-xs"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics & Quick Actions Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Enrollment Chart -->
+    <div class="dashboard-card lg:col-span-2 fade-in-up">
+      <div class="dashboard-card-header">
+        <h2 class="dashboard-card-title">
+          <i class="fas fa-chart-area text-primary"></i> Enrollment Trends
+        </h2>
+        <div
+          class="px-3 py-1.5 bg-primary-light text-primary rounded-md text-sm flex items-center"
+        >
+          <i class="fas fa-calendar-alt mr-2"></i>
+          <span>Last 6 months</span>
+        </div>
+      </div>
+      <div class="p-4 h-80">
+        <canvas id="enrollmentChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="dashboard-card fade-in-up">
+      <div class="dashboard-card-header">
+        <h2 class="dashboard-card-title">
+          <i class="fas fa-bolt text-warning"></i> Quick Actions
+        </h2>
+      </div>
+      <div class="p-4">
+        <div class="grid gap-3">
+          <a
+            href="{{ url_for('admin_add_course') }}"
+            class="quick-action-btn bg-primary-light/50 hover:bg-primary-light text-primary"
+          >
+            <i class="fas fa-plus-circle text-lg"></i>
+            <span>Add New Course</span>
+          </a>
+          <a
+            href="{{ url_for('admin_users') }}"
+            class="quick-action-btn bg-success-light/50 hover:bg-success-light text-success"
+          >
+            <i class="fas fa-user-plus text-lg"></i>
+            <span>Add New Student</span>
+          </a>
+          <a
+            href="{{ url_for('admin_create_quiz') }}"
+            class="quick-action-btn bg-info-light/50 hover:bg-info-light text-info"
+          >
+            <i class="fas fa-question-circle text-lg"></i>
+            <span>Create New Quiz</span>
+          </a>
+          <a
+            href="{{ url_for('admin_site_settings') }}"
+            class="quick-action-btn bg-warning-light/50 hover:bg-warning-light text-warning"
+          >
+            <i class="fas fa-cog text-lg"></i>
+            <span>Site Settings</span>
+          </a>
+          <a
+            href="{{ url_for('admin_reports') }}"
+            class="quick-action-btn bg-accent-light/50 hover:bg-accent-light text-accent"
+          >
+            <i class="fas fa-file-export text-lg"></i>
+            <span>Export Reports</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories & Activity Row -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Categories Overview -->
+    <div class="dashboard-card fade-in-up">
+      <div class="dashboard-card-header">
+        <h2 class="dashboard-card-title">
+          <i class="fas fa-tags text-primary"></i> Popular Categories
+        </h2>
+      </div>
+      <div class="p-4">
+        {% for category, count in categories.items() %} {% if loop.index <= 6 %}
+        <div
+          class="category-item mb-4 last:mb-0 p-3 bg-white dark:bg-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow stagger-item"
+        >
+          <div class="flex items-start">
+            <div
+              class="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center mr-3 shrink-0"
+            >
+              <i class="fas fa-folder text-primary"></i>
+            </div>
+            <div class="flex-grow">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-text-primary"
+                  >{{ category }}</span
+                >
+                <span class="badge bg-primary-light text-primary"
+                  >{{ count }} course{% if count != 1 %}s{% endif %}</span
+                >
+              </div>
+              <div class="progress-bar">
+                {% set percentage = (count / stats.total_courses * 100)|round %}
+                <div
+                  class="progress-bar-fill"
+                  style="width: {{ percentage }}%"
+                ></div>
+              </div>
+              <div class="text-xs text-text-tertiary mt-1">
+                {{ percentage }}% of all courses
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %} {% endfor %}
+      </div>
+      {% if categories|length > 6 %}
+      <div class="mt-2 mb-4 text-center">
+        <button
+          class="px-3 py-2 text-sm text-primary border border-primary rounded-md hover:bg-primary-light transition-colors"
+        >
+          View all categories <i class="fas fa-arrow-right ml-1"></i>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="dashboard-card fade-in-up">
+      <div class="dashboard-card-header">
+        <h2 class="dashboard-card-title">
+          <i class="fas fa-history text-accent"></i> Recent Activity
+        </h2>
+      </div>
+      <div class="p-4">
+        {% if recent_enrollments or recent_completions %}
+        <div class="space-y-3">
+          {% for enrollment in recent_enrollments %}
+          <div class="activity-item stagger-item">
+            <div class="activity-icon bg-primary-light text-primary">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="activity-content">
+              <h3 class="activity-title">
+                New Enrollment: {{ enrollment.student.username }}
+              </h3>
+              <p class="activity-subtitle">
+                Enrolled in <strong>{{ enrollment.course.title }}</strong>
+              </p>
+              <p class="activity-time">
+                {{ enrollment.enrolled_at.strftime('%b %d, %Y') }}
+              </p>
+            </div>
+          </div>
+          {% endfor %} {% for completion in recent_completions %}
+          <div class="activity-item stagger-item">
+            <div class="activity-icon bg-success-light text-success">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="activity-content">
+              <h3 class="activity-title">
+                Course Completed: {{ completion.student.username }}
+              </h3>
+              <p class="activity-subtitle">
+                Completed <strong>{{ completion.course.title }}</strong>
+              </p>
+              <p class="activity-time">
+                {{ completion.completed_at.strftime('%b %d, %Y') if
+                completion.completed_at else completion.enrolled_at.strftime('%b
+                %d, %Y') }}
+              </p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="py-8 text-center text-text-tertiary">
+          <div class="mb-3">
+            <i class="fas fa-info-circle text-accent text-xl"></i>
+          </div>
+          <p>No recent activity to display</p>
+          <p class="text-xs mt-1">Check back later for updates</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Course Management -->
+  <div id="courseManagement" class="dashboard-card mb-6 fade-in-up">
+    <div class="dashboard-card-header">
+      <h2 class="dashboard-card-title">
+        <i class="fas fa-book-open"></i> Course Management
+      </h2>
+      <a
+        href="{{ url_for('admin_add_course') }}"
+        class="bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-md text-sm flex items-center transition-colors"
+      >
+        <i class="fas fa-plus mr-2"></i>
+        Add Course
+      </a>
     </div>
 
     <!-- Search and Filter Bar -->
-    <div class="px-5 py-4 border-b border-border-color bg-gray-50 dark:bg-gray-800">
-        <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-            <div class="relative w-full sm:w-72">
-                <input type="text" 
-                       id="courseSearch" 
-                       placeholder="Search courses..." 
-                       class="pl-10 pr-3 py-2 w-full border border-border-color rounded-md text-sm bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary">
-                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                <select id="filterDuration" class="border border-border-color rounded-md text-sm py-2 px-3 bg-card-bg text-text-primary focus:ring-2 focus:ring-primary focus:border-primary">
-                    <option value="all">All Durations</option>
-                    <option value="short">Short (< 8 weeks)</option>
-                    <option value="medium">Medium (8-12 weeks)</option>
-                    <option value="long">Long (> 12 weeks)</option>
-                </select>
-                <select id="filterCategory" class="border border-border-color rounded-md text-sm py-2 px-3 bg-card-bg text-text-primary focus:ring-2 focus:ring-primary focus:border-primary">
-                    <option value="all">All Categories</option>
-                    {% for category in categories %}
-                    <option value="{{ category }}">{{ category }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-                </div>
-            </div>
-
-            <!-- Course List -->
-                <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-border-color">
-            <thead class="bg-gray-100 dark:bg-gray-800">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:text-primary" data-sort="title">
-                        Title <i class="fas fa-sort ml-1"></i>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:text-primary" data-sort="tags">
-                        Tags <i class="fas fa-sort ml-1"></i>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:text-primary" data-sort="students">
-                        Students <i class="fas fa-sort ml-1"></i>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:text-primary" data-sort="duration">
-                        Duration <i class="fas fa-sort ml-1"></i>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider">
-                        Actions
-                    </th>
-                            </tr>
-                        </thead>
-            <tbody class="bg-card-bg divide-y divide-border-color" id="courseTableBody">
-                            {% for course in courses %}
-                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150" 
-                    data-course-id="{{ course.id }}"
-                    data-course-title="{{ course.title }}"
-                    data-course-tags="{{ course.semantic_tags }}"
-                    data-course-duration="{{ course.duration_weeks }}"
-                    data-course-max-students="{{ course.max_students }}"
-                    data-course-enrollment="{{ course.enrollments|length }}">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10 bg-primary-light text-primary rounded-full flex items-center justify-center mr-3">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <div>
-                                <div class="text-sm font-medium text-text-primary">{{ course.title }}</div>
-                                <div class="text-sm text-text-secondary truncate max-w-md">{{ course.description[:100] }}{% if course.description|length > 100 %}...{% endif %}</div>
-                            </div>
-                        </div>
-                                </td>
-                                <td class="px-6 py-4">
-                        <div class="flex flex-wrap gap-1">
-                            {% if course.semantic_tags %}
-                                {% for tag in course.semantic_tags.split(',')[:3] %} {# Limit tags shown #}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-primary-light text-primary dark:bg-gray-700 dark:text-gray-200 border border-transparent">
-                                            {{ tag.strip() }}
-                                        </span>
-                                        {% endfor %}
-                                {% if course.semantic_tags.split(',')|length > 3 %}
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-text-secondary">
-                                    +{{ course.semantic_tags.split(',')|length - 3 }}
-                                </span>
-                                {% endif %}
-                            {% endif %}
-                                    </div>
-                                </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="text-sm text-text-secondary mr-2">{{ course.enrollments|length }}/{{ course.max_students }}</div>
-                            <div class="w-16 bg-gray-200 rounded-full h-2">
-                                {% set enrollment_count = course.enrollments|length %}
-                                {% set percent = (enrollment_count / course.max_students) * 100 if course.max_students > 0 else 0 %}
-                                <div class="bg-primary h-2 rounded-full" style="width: {{ percent }}%"></div>
-                            </div>
-                        </div>
-                                </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                                    {{ course.duration_weeks }} weeks
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex justify-end space-x-3">
-                                        <a href="{{ url_for('admin_edit_course', course_id=course.id) }}" 
-                               class="text-primary hover:text-primary-dark transition-colors duration-200" title="Edit">
-                                <i class="fas fa-pencil-alt action-icon"></i>
-                            </a>
-                            <a href="{{ url_for('admin_course_lessons', course_id=course.id) }}" 
-                               class="text-accent hover:text-accent-dark transition-colors duration-200" title="Manage Lessons">
-                                <i class="fas fa-book action-icon"></i>
-                                        </a>
-                                        <form action="{{ url_for('admin_delete_course', course_id=course.id) }}" 
-                                              method="POST" 
-                                              class="inline-block"
-                                  onsubmit="return confirm('Are you sure you want to delete \'{{ course.title|e }}\'?');">
-                                            <button type="submit" 
-                                        class="text-danger hover:text-danger-dark transition-colors duration-200" title="Delete">
-                                    <i class="fas fa-trash-alt action-icon"></i>
-                                            </button>
-                                        </form>
-                            <a href="#view-lessons" 
-                               onclick="toggleLessons('{{ course.id }}')"
-                               class="text-accent hover:text-accent-dark transition-colors duration-200" title="View Lessons">
-                                <i class="fas fa-list-ul action-icon"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                <tr id="lessons-{{ course.id }}" class="hidden">
-                    <td colspan="5" class="px-6 py-4 bg-gray-50 dark:bg-gray-800">
-                        <div class="rounded border border-border-color p-3">
-                            <h4 class="text-sm font-medium text-text-primary mb-2">Lessons for: {{ course.title }}</h4>
-                            <div class="space-y-2">
-                                {% if course._lessons is defined and course._lessons %}
-                                    {% for lesson in course._lessons %}
-                                        <div class="flex justify-between items-center py-2 border-b border-border-color last:border-0">
-                                            <span class="text-sm">{{ lesson.lesson_number }}. {{ lesson.title }}</span>
-                                            <a href="{{ url_for('admin_edit_lesson', lesson_id=lesson.id) }}" class="text-primary text-xs hover:underline">Edit</a>
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="text-sm text-text-secondary">No lessons available for this course.</p>
-                                {% endif %}
-                            </div>
-                                    </div>
-                                </td>
-                </tr>
-                {% else %}
-                 <tr>
-                    <td colspan="5" class="text-center py-8 text-text-secondary">
-                        No courses found.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-    
-    <!-- Pagination -->
-    <div class="px-5 py-4 bg-gray-50 dark:bg-gray-800 border-t border-border-color">
-        <div class="flex items-center justify-between">
-            <div class="text-xs text-text-secondary" id="courseCount">
-                Showing <span class="font-medium">{{ courses|length }}</span> courses
-            </div>
-            <div class="flex space-x-1">
-                <button class="px-3 py-1 border border-border-color rounded text-text-secondary text-sm hover:bg-card-bg disabled:opacity-50" disabled>
-                    <i class="fas fa-chevron-left mr-1"></i> Previous
-                </button>
-                <button class="px-3 py-1 border border-border-color rounded text-text-secondary text-sm hover:bg-card-bg disabled:opacity-50" disabled>
-                    Next <i class="fas fa-chevron-right ml-1"></i>
-                </button>
-            </div>
+    <div
+      class="px-5 py-4 border-b border-border-color bg-gray-50 dark:bg-gray-800"
+    >
+      <div
+        class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0"
+      >
+        <div class="relative w-full sm:w-72">
+          <input
+            type="text"
+            id="courseSearch"
+            placeholder="Search courses..."
+            class="pl-10 pr-3 py-2 w-full border border-border-color rounded-md text-sm bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary"
+          />
+          <i
+            class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-tertiary"
+          ></i>
         </div>
+        <div class="flex flex-wrap gap-2">
+          <select
+            id="filterDuration"
+            class="border border-border-color rounded-md text-sm py-2 px-3 bg-card-bg text-text-primary focus:ring-2 focus:ring-primary focus:border-primary"
+          >
+            <option value="all">All Durations</option>
+            <option value="short">Short (< 8 weeks)</option>
+            <option value="medium">Medium (8-12 weeks)</option>
+            <option value="long">Long (> 12 weeks)</option>
+          </select>
+          <select
+            id="filterCategory"
+            class="border border-border-color rounded-md text-sm py-2 px-3 bg-card-bg text-text-primary focus:ring-2 focus:ring-primary focus:border-primary"
+          >
+            <option value="all">All Categories</option>
+            {% for category in categories %}
+            <option value="{{ category }}">{{ category }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
     </div>
+
+    <!-- Course List -->
+    <div class="overflow-x-auto">
+      <table class="dashboard-table">
+        <thead>
+          <tr>
+            <th
+              scope="col"
+              class="cursor-pointer hover:text-primary"
+              data-sort="title"
+            >
+              Title <i class="fas fa-sort ml-1"></i>
+            </th>
+            <th
+              scope="col"
+              class="cursor-pointer hover:text-primary"
+              data-sort="tags"
+            >
+              Tags <i class="fas fa-sort ml-1"></i>
+            </th>
+            <th
+              scope="col"
+              class="cursor-pointer hover:text-primary"
+              data-sort="students"
+            >
+              Students <i class="fas fa-sort ml-1"></i>
+            </th>
+            <th
+              scope="col"
+              class="cursor-pointer hover:text-primary"
+              data-sort="duration"
+            >
+              Duration <i class="fas fa-sort ml-1"></i>
+            </th>
+            <th scope="col" class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="courseTableBody">
+          {% for course in courses %}
+          <tr
+            class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150 stagger-item"
+            data-course-id="{{ course.id }}"
+            data-course-title="{{ course.title }}"
+            data-course-tags="{{ course.semantic_tags }}"
+            data-course-duration="{{ course.duration_weeks }}"
+            data-course-max-students="{{ course.max_students }}"
+            data-course-enrollment="{{ course.enrollments|length }}"
+          >
+            <td>
+              <div class="flex items-center">
+                <div
+                  class="flex-shrink-0 h-10 w-10 bg-primary-light text-primary rounded-full flex items-center justify-center mr-3"
+                >
+                  <i class="fas fa-book"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-text-primary">
+                    {{ course.title }}
+                  </div>
+                  <div class="text-xs text-text-tertiary truncate max-w-md">
+                    {{ course.description[:80] }}{% if course.description|length
+                    > 80 %}...{% endif %}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="flex flex-wrap gap-1">
+                {% if course.semantic_tags %} {% for tag in
+                course.semantic_tags.split(',')[:3] %} {# Limit tags shown #}
+                <span class="badge bg-primary-light text-primary">
+                  {{ tag.strip() }}
+                </span>
+                {% endfor %} {% if course.semantic_tags.split(',')|length > 3 %}
+                <span class="text-xs text-text-tertiary">
+                  +{{ course.semantic_tags.split(',')|length - 3 }}
+                </span>
+                {% endif %} {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="flex items-center">
+                <div class="text-sm text-text-secondary mr-2">
+                  {{ course.enrollments|length }}/{{ course.max_students }}
+                </div>
+                <div class="w-16 progress-bar">
+                  {% set enrollment_count = course.enrollments|length %} {% set
+                  percent = (enrollment_count / course.max_students) * 100 if
+                  course.max_students > 0 else 0 %}
+                  <div
+                    class="progress-bar-fill"
+                    style="width: {{ percent }}%"
+                  ></div>
+                </div>
+              </div>
+            </td>
+            <td class="text-sm text-text-secondary">
+              {{ course.duration_weeks }} weeks
+            </td>
+            <td class="text-right text-sm font-medium">
+              <div class="flex justify-end space-x-3">
+                <a
+                  href="{{ url_for('admin_edit_course', course_id=course.id) }}"
+                  class="text-primary hover:text-primary-dark transition-colors"
+                  title="Edit"
+                >
+                  <i class="fas fa-pencil-alt"></i>
+                </a>
+                <a
+                  href="{{ url_for('admin_course_lessons', course_id=course.id) }}"
+                  class="text-accent hover:text-accent-dark transition-colors"
+                  title="Manage Lessons"
+                >
+                  <i class="fas fa-book"></i>
+                </a>
+                <form
+                  action="{{ url_for('admin_delete_course', course_id=course.id) }}"
+                  method="POST"
+                  class="inline-block"
+                  onsubmit="return confirm('Are you sure you want to delete \'{{ course.title|e }}\'?');"
+                >
+                  <button
+                    type="submit"
+                    class="text-danger hover:text-danger-dark transition-colors"
+                    title="Delete"
+                  >
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block dashboard_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 <script>
-    // Enrollment Chart with animated loading
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('enrollmentChart').getContext('2d');
-        
-        // Get enrollment data from the server
-        const enrollmentData = {{ stats.monthly_enrollments|tojson }};
-        const labels = enrollmentData.map(item => item.month);
-        const data = enrollmentData.map(item => item.count);
-        
-        // Create chart with animation
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'New Enrollments',
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 2,
-                    data: data,
-                    tension: 0.4,
-                    pointBackgroundColor: 'white',
-                    pointBorderColor: 'rgba(59, 130, 246, 1)',
-                    pointBorderWidth: 2,
-                    pointRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animations: {
-                    tension: {
-                        duration: 1000,
-                        easing: 'linear',
-                        from: 0.2,
-                        to: 0.4,
-                        loop: false
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            boxWidth: 6
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        titleColor: '#333',
-                        bodyColor: '#666',
-                        borderColor: 'rgba(59, 130, 246, 0.3)',
-                        borderWidth: 1,
-                        cornerRadius: 6,
-                        padding: 10,
-                        displayColors: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            precision: 0
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-    });
+  document.addEventListener('DOMContentLoaded', function() {
+      // Animate count up for stat values
+      document.querySelectorAll('.stat-value[data-count]').forEach(element => {
+          const target = parseInt(element.getAttribute('data-count'));
+          const duration = 2000; // ms
+          const frameDuration = 1000/60; // 60fps
+          const totalFrames = Math.round(duration / frameDuration);
+          let frame = 0;
+          const countTo = parseInt(target, 10);
 
-    // Toggle lessons view
-    function toggleLessons(courseId) {
-        const lessonsRow = document.getElementById(`lessons-${courseId}`);
-        lessonsRow.classList.toggle('hidden');
-    }
-    
-    // Course search functionality
-    document.getElementById('courseSearch').addEventListener('input', function() {
-        filterCourses();
-    });
-    
-    // Duration filter
-    document.getElementById('filterDuration').addEventListener('change', function() {
-        filterCourses();
-    });
-    
-    // Category filter
-    document.getElementById('filterCategory').addEventListener('change', function() {
-        filterCourses();
-    });
-    
-    // Sorting functionality
-    document.querySelectorAll('th[data-sort]').forEach(header => {
-        header.addEventListener('click', function() {
-            const sortBy = this.getAttribute('data-sort');
-            sortCourses(sortBy);
-            
-            // Toggle sort direction
-            if (this.classList.contains('sort-asc')) {
-                this.classList.remove('sort-asc');
-                this.classList.add('sort-desc');
-            } else if (this.classList.contains('sort-desc')) {
-                this.classList.remove('sort-desc');
-                this.classList.add('sort-asc');
-            } else {
-                // Remove sort classes from all headers
-                document.querySelectorAll('th[data-sort]').forEach(h => {
-                    h.classList.remove('sort-asc', 'sort-desc');
-                });
-                this.classList.add('sort-asc');
-            }
-            
-            // Update sort icons
-            updateSortIcons();
-        });
-    });
+          const counter = setInterval(() => {
+              frame++;
+              const progress = frame / totalFrames;
+              const currentCount = Math.round(countTo * progress);
 
-    function updateSortIcons() {
-        document.querySelectorAll('th[data-sort]').forEach(header => {
-            const icon = header.querySelector('i');
-            icon.className = 'fas fa-sort ml-1';
-            
-            if (header.classList.contains('sort-asc')) {
-                icon.className = 'fas fa-sort-up ml-1';
-            } else if (header.classList.contains('sort-desc')) {
-                icon.className = 'fas fa-sort-down ml-1';
-            }
-        });
-    }
-    
-    function filterCourses() {
-        const searchText = document.getElementById('courseSearch').value.toLowerCase();
-        const durationFilter = document.getElementById('filterDuration').value;
-        const categoryFilter = document.getElementById('filterCategory').value;
-        
-        const rows = document.querySelectorAll('#courseTableBody tr:not([id^="lessons-"])');
-        let visibleCount = 0;
-        
-        rows.forEach(row => {
-            const titleCell = row.querySelector('td:first-child');
-            const tags = row.getAttribute('data-course-tags') || '';
-            const duration = parseInt(row.getAttribute('data-course-duration') || '0');
-            
-            let showBySearch = true;
-            let showByDuration = true;
-            let showByCategory = true;
-            
-            // Search filter
-            if (searchText) {
-                const title = row.getAttribute('data-course-title') || '';
-                showBySearch = title.toLowerCase().includes(searchText) || tags.toLowerCase().includes(searchText);
-            }
-            
-            // Duration filter
-            if (durationFilter !== 'all') {
-                if (durationFilter === 'short') {
-                    showByDuration = duration < 8;
-                } else if (durationFilter === 'medium') {
-                    showByDuration = duration >= 8 && duration <= 12;
-                } else if (durationFilter === 'long') {
-                    showByDuration = duration > 12;
-                }
-            }
-            
-            // Category filter
-            if (categoryFilter !== 'all') {
-                showByCategory = tags.toLowerCase().includes(categoryFilter.toLowerCase());
-            }
-            
-            // Show/hide row based on all filters
-            if (showBySearch && showByDuration && showByCategory) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-                
-                // Also hide associated lessons row
-                const courseId = row.getAttribute('data-course-id');
-                if (courseId) {
-                    const lessonsRow = document.getElementById(`lessons-${courseId}`);
-                    if (lessonsRow) {
-                        lessonsRow.style.display = 'none';
-                    }
-                }
-            }
-        });
-        
-        // Update course count
-        document.getElementById('courseCount').innerHTML = `Showing <span class="font-medium">${visibleCount}</span> courses`;
-    }
-    
-    function sortCourses(sortBy) {
-        const tbody = document.getElementById('courseTableBody');
-        const rows = Array.from(tbody.querySelectorAll('tr:not([id^="lessons-"])'));
-        
-        // Determine sort direction
-        const header = document.querySelector(`th[data-sort="${sortBy}"]`);
-        const sortDirection = header.classList.contains('sort-desc') ? 1 : -1;
-        
-        // Sort rows
-        rows.sort((a, b) => {
-            let valueA, valueB;
-            
-            switch(sortBy) {
-                case 'title':
-                    valueA = a.getAttribute('data-course-title') || '';
-                    valueB = b.getAttribute('data-course-title') || '';
-                    return sortDirection * valueA.localeCompare(valueB);
-                
-                case 'duration':
-                    valueA = parseInt(a.getAttribute('data-course-duration') || '0');
-                    valueB = parseInt(b.getAttribute('data-course-duration') || '0');
-                    return sortDirection * (valueA - valueB);
-                
-                case 'students':
-                    valueA = parseInt(a.getAttribute('data-course-enrollment') || '0');
-                    valueB = parseInt(b.getAttribute('data-course-enrollment') || '0');
-                    return sortDirection * (valueA - valueB);
-                
-                case 'tags':
-                    valueA = a.getAttribute('data-course-tags') || '';
-                    valueB = b.getAttribute('data-course-tags') || '';
-                    return sortDirection * valueA.localeCompare(valueB);
-                
-                default:
-                    return 0;
-            }
-        });
-        
-        // Reorder rows in the DOM
-        rows.forEach(row => {
-            tbody.appendChild(row);
-            
-            // Move the lesson row to maintain association
-            const courseId = row.getAttribute('data-course-id');
-            if (courseId) {
-                const lessonsRow = document.getElementById(`lessons-${courseId}`);
-                if (lessonsRow) {
-                    tbody.appendChild(lessonsRow);
-                }
-            }
-        });
-    }
+              if (progress >= 1) {
+                  element.textContent = countTo;
+                  clearInterval(counter);
+              } else {
+                  element.textContent = currentCount;
+              }
+          }, frameDuration);
+      });
+
+      // Enrollment Chart
+      const ctx = document.getElementById('enrollmentChart').getContext('2d');
+
+      // Extract data from the stats
+      const enrollmentData = {{ stats.monthly_enrollments|tojson }};
+      const labels = enrollmentData.map(item => item.month);
+      const data = enrollmentData.map(item => item.count);
+
+      const enrollmentChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+              labels: labels,
+              datasets: [{
+                  label: 'New Enrollments',
+                  data: data,
+                  fill: true,
+                  backgroundColor: 'rgba(59, 110, 246, 0.1)',
+                  borderColor: '#3b6ef6',
+                  tension: 0.4,
+                  pointBackgroundColor: '#3b6ef6',
+                  pointBorderColor: '#fff',
+                  pointBorderWidth: 2,
+                  pointRadius: 4,
+                  pointHoverRadius: 6
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: {
+                  duration: 2000,
+                  easing: 'easeOutQuart'
+              },
+              plugins: {
+                  legend: {
+                      display: false
+                  },
+                  tooltip: {
+                      backgroundColor: '#fff',
+                      titleColor: '#0f172a',
+                      bodyColor: '#334155',
+                      titleFont: {
+                          size: 14,
+                          weight: 'bold'
+                      },
+                      bodyFont: {
+                          size: 13
+                      },
+                      padding: 12,
+                      borderColor: '#e2e8f0',
+                      borderWidth: 1,
+                      displayColors: false,
+                      callbacks: {
+                          title: function(tooltipItems) {
+                              return tooltipItems[0].label + ' ' + new Date().getFullYear();
+                          },
+                          label: function(context) {
+                              return context.parsed.y + ' new enrollments';
+                          }
+                      }
+                  }
+              },
+              scales: {
+                  x: {
+                      grid: {
+                          display: false
+                      },
+                      ticks: {
+                          color: '#64748b'
+                      }
+                  },
+                  y: {
+                      beginAtZero: true,
+                      grid: {
+                          color: '#e2e8f0'
+                      },
+                      ticks: {
+                          color: '#64748b',
+                          precision: 0
+                      }
+                  }
+              }
+          }
+      });
+
+      // Search and Filter Functionality
+      const courseSearch = document.getElementById('courseSearch');
+      const filterDuration = document.getElementById('filterDuration');
+      const filterCategory = document.getElementById('filterCategory');
+      const courseTableBody = document.getElementById('courseTableBody');
+      const courseRows = Array.from(courseTableBody.querySelectorAll('tr'));
+
+      function filterCourses() {
+          const searchTerm = courseSearch.value.toLowerCase();
+          const durationFilter = filterDuration.value;
+          const categoryFilter = filterCategory.value;
+
+          courseRows.forEach(row => {
+              const title = row.getAttribute('data-course-title').toLowerCase();
+              const tags = row.getAttribute('data-course-tags')?.toLowerCase() || '';
+              const duration = parseInt(row.getAttribute('data-course-duration'));
+
+              // Search filter
+              const matchesSearch = title.includes(searchTerm) || tags.includes(searchTerm);
+
+              // Duration filter
+              let matchesDuration = true;
+              if (durationFilter === 'short') {
+                  matchesDuration = duration < 8;
+              } else if (durationFilter === 'medium') {
+                  matchesDuration = duration >= 8 && duration <= 12;
+              } else if (durationFilter === 'long') {
+                  matchesDuration = duration > 12;
+              }
+
+              // Category filter
+              let matchesCategory = true;
+              if (categoryFilter !== 'all') {
+                  matchesCategory = tags.includes(categoryFilter.toLowerCase());
+              }
+
+              // Show/hide row
+              if (matchesSearch && matchesDuration && matchesCategory) {
+                  row.classList.remove('hidden');
+              } else {
+                  row.classList.add('hidden');
+              }
+          });
+      }
+
+      // Add event listeners
+      courseSearch.addEventListener('input', filterCourses);
+      filterDuration.addEventListener('change', filterCourses);
+      filterCategory.addEventListener('change', filterCourses);
+
+      // Sorting functionality
+      const sortableHeaders = document.querySelectorAll('th[data-sort]');
+      let currentSort = { column: 'title', direction: 'asc' };
+
+      function sortCourses(column) {
+          const direction = column === currentSort.column && currentSort.direction === 'asc' ? 'desc' : 'asc';
+
+          courseRows.sort((a, b) => {
+              let valueA, valueB;
+
+              switch(column) {
+                  case 'title':
+                      valueA = a.getAttribute('data-course-title');
+                      valueB = b.getAttribute('data-course-title');
+                      break;
+                  case 'tags':
+                      valueA = a.getAttribute('data-course-tags') || '';
+                      valueB = b.getAttribute('data-course-tags') || '';
+                      break;
+                  case 'students':
+                      valueA = parseInt(a.getAttribute('data-course-enrollment'));
+                      valueB = parseInt(b.getAttribute('data-course-enrollment'));
+                      break;
+                  case 'duration':
+                      valueA = parseInt(a.getAttribute('data-course-duration'));
+                      valueB = parseInt(b.getAttribute('data-course-duration'));
+                      break;
+              }
+
+              if (typeof valueA === 'string') {
+                  return direction === 'asc'
+                      ? valueA.localeCompare(valueB)
+                      : valueB.localeCompare(valueA);
+              } else {
+                  return direction === 'asc'
+                      ? valueA - valueB
+                      : valueB - valueA;
+              }
+          });
+
+          // Update DOM
+          const fragment = document.createDocumentFragment();
+          courseRows.forEach(row => fragment.appendChild(row));
+          courseTableBody.innerHTML = '';
+          courseTableBody.appendChild(fragment);
+
+          currentSort = { column, direction };
+
+          // Update sort indicators
+          sortableHeaders.forEach(header => {
+              const sortColumn = header.getAttribute('data-sort');
+              const icon = header.querySelector('i');
+
+              if (sortColumn === column) {
+                  icon.className = direction === 'asc'
+                      ? 'fas fa-sort-up ml-1'
+                      : 'fas fa-sort-down ml-1';
+              } else {
+                  icon.className = 'fas fa-sort ml-1';
+              }
+          });
+      }
+
+      // Add event listeners for sorting
+      sortableHeaders.forEach(header => {
+          header.addEventListener('click', () => {
+              const column = header.getAttribute('data-sort');
+              sortCourses(column);
+          });
+      });
+
+      // Initial sort
+      sortCourses('title');
+  });
 </script>
-{% endblock %}
+{% endblock %} {% endblock %}

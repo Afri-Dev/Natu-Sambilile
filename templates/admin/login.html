@@ -1,567 +1,671 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="LearnHub admin portal login page">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="LearnHub admin portal login page" />
     <title>Admin Login - LearnHub</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-ui.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-toggle.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/modern-ui.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/theme-toggle.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      media="print"
+      onload="this.media='all'"
+    />
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, var(--primary) 0%, #4a6fdc 100%);
-        }
-        
-        /* Base styles */
-        body {
-            background-color: var(--body-bg);
-            color: var(--text-primary);
-            transition: background-color 0.3s ease, color 0.3s ease;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-image: 
-                radial-gradient(circle at 25% 5%, rgba(59, 130, 246, 0.05) 0%, transparent 25%), 
-                radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.05) 0%, transparent 30%);
-            background-attachment: fixed;
-            margin: 0;
-            padding: 0;
-        }
-        
-        /* Layout */
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
+      :root {
+        --primary-gradient: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          #4a6fdc 100%
+        );
+      }
+
+      /* Base styles */
+      body {
+        background-color: var(--body-bg);
+        color: var(--text-primary);
+        transition: background-color 0.3s ease, color 0.3s ease;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        background-image: radial-gradient(
+            circle at 25% 5%,
+            rgba(59, 130, 246, 0.05) 0%,
+            transparent 25%
+          ),
+          radial-gradient(
+            circle at 85% 85%,
+            rgba(59, 130, 246, 0.05) 0%,
+            transparent 30%
+          );
+        background-attachment: fixed;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Layout */
+      .admin-container {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .admin-sidebar {
+        display: none;
+        background: var(--primary-gradient);
+        width: 40%;
+        padding: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      @media (min-width: 1024px) {
         .admin-sidebar {
-            display: none;
-            background: var(--primary-gradient);
-            width: 40%;
-            padding: 2rem;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        @media (min-width: 1024px) {
-            .admin-sidebar {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
-        }
-        
-        .sidebar-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .sidebar-pattern {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            opacity: 0.1;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E");
-        }
-        
-        .login-form-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 1.5rem;
-        }
-        
-        /* Components */
-        .admin-login-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-            border-radius: 1rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            max-width: 450px;
-            width: 100%;
-            margin: 0 auto;
-            will-change: transform;
-        }
-        
-        .admin-login-card:hover {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            transform: translateY(-2px);
-        }
-        
-        /* Form elements */
-        .form-input {
-            background-color: var(--card-bg);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1rem;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .form-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
-            outline: none;
-        }
-        
-        .input-group {
-            position: relative;
-        }
-        
-        .input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            pointer-events: none;
-        }
-        
-        .input-with-icon {
-            padding-left: 2.75rem;
-        }
-        
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 0.75rem 1.5rem;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
-        
-        .login-btn {
-            background: var(--primary-gradient);
-            color: white;
-            font-weight: 600;
-            letter-spacing: 0.025em;
-        }
-        
-        .login-btn:hover, .login-btn:focus {
-            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
-            transform: translateY(-1px);
-        }
-        
-        .back-btn {
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-            background-color: var(--card-bg);
-        }
-        
-        .back-btn:hover, .back-btn:focus {
-            background-color: var(--gray-100);
-            color: var(--primary);
-            border-color: var(--primary);
-        }
-        
-        /* Utility classes */
-        .divider {
-            border-color: var(--border-color);
-        }
-        
-        .divider-text {
-            background-color: var(--card-bg);
-            color: var(--text-secondary);
-            padding: 0 0.75rem;
-        }
-        
-        .alert {
-            animation: slideDown 0.3s ease-out forwards;
-            opacity: 0;
-        }
-        
-        @keyframes slideDown {
-            from {
-                transform: translateY(-10px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        /* Accessibility and focus styles */
-        a:focus, button:focus, input:focus {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-        
-        /* Utility classes that adapt to color scheme */
-        .text-white-80 {
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .text-center {
-            text-align: center;
-        }
-        
-        .text-sm {
-            font-size: 0.875rem;
-        }
-        
-        .text-xs {
-            font-size: 0.75rem;
-        }
-        
-        .font-medium {
-            font-weight: 500;
-        }
-        
-        .font-bold {
-            font-weight: 700;
-        }
-        
-        .mb-1 {
-            margin-bottom: 0.25rem;
-        }
-        
-        .mb-2 {
-            margin-bottom: 0.5rem;
-        }
-        
-        .mb-4 {
-            margin-bottom: 1rem;
-        }
-        
-        .mb-6 {
-            margin-bottom: 1.5rem;
-        }
-        
-        .mb-8 {
-            margin-bottom: 2rem;
-        }
-        
-        .mb-10 {
-            margin-bottom: 2.5rem;
-        }
-        
-        .mt-1 {
-            margin-top: 0.25rem;
-        }
-        
-        .mt-6 {
-            margin-top: 1.5rem;
-        }
-        
-        .mt-8 {
-            margin-top: 2rem;
-        }
-        
-        .mr-2 {
-            margin-right: 0.5rem;
-        }
-        
-        .py-3 {
-            padding-top: 0.75rem;
-            padding-bottom: 0.75rem;
-        }
-        
-        .px-4 {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-        
-        .py-8 {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-        }
-        
-        .px-8 {
-            padding-left: 2rem;
-            padding-right: 2rem;
-        }
-        
-        .w-full {
-            width: 100%;
-        }
-        
-        .max-w-md {
-            max-width: 28rem;
-        }
-        
-        .mx-auto {
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .space-y-3 > * + * {
-            margin-top: 0.75rem;
-        }
-        
-        .space-y-5 > * + * {
-            margin-top: 1.25rem;
-        }
-        
-        .flex {
-            display: flex;
-        }
-        
-        .items-center {
-            align-items: center;
-        }
-        
-        .justify-center {
-            justify-content: center;
-        }
-        
-        .justify-end {
-            justify-content: flex-end;
-        }
-        
-        .rounded-full {
-            border-radius: 9999px;
-        }
-        
-        .rounded-lg {
-            border-radius: 0.5rem;
-        }
-        
-        .w-16 {
-            width: 4rem;
-        }
-        
-        .h-16 {
-            height: 4rem;
-        }
-        
-        .inline-flex {
-            display: inline-flex;
-        }
-        
-        .relative {
-            position: relative;
-        }
-        
-        .absolute {
-            position: absolute;
-        }
-        
-        .inset-0 {
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-        }
-        
-        .border-t {
-            border-top-width: 1px;
-            border-top-style: solid;
-        }
-        
-        .block {
-            display: block;
-        }
-        
-        .appearance-none {
-            appearance: none;
-        }
-        
-        .pt-2 {
-            padding-top: 0.5rem;
-        }
-        
-        .hover\:underline:hover {
-            text-decoration: underline;
-        }
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+      }
+
+      .sidebar-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .sidebar-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0.1;
+        background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E");
+      }
+
+      .login-form-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 1.5rem;
+      }
+
+      /* Components */
+      .admin-login-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow);
+        border-radius: 1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        max-width: 450px;
+        width: 100%;
+        margin: 0 auto;
+        will-change: transform;
+      }
+
+      .admin-login-card:hover {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(-2px);
+      }
+
+      /* Form elements */
+      .form-input {
+        background-color: var(--card-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .form-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+        outline: none;
+      }
+
+      .input-group {
+        position: relative;
+      }
+
+      .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+        pointer-events: none;
+      }
+
+      .input-with-icon {
+        padding-left: 2.75rem;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+      }
+
+      .login-btn {
+        background: var(--primary-gradient);
+        color: white;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+      }
+
+      .login-btn:hover,
+      .login-btn:focus {
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        transform: translateY(-1px);
+      }
+
+      .back-btn {
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        background-color: var(--card-bg);
+      }
+
+      .back-btn:hover,
+      .back-btn:focus {
+        background-color: var(--gray-100);
+        color: var(--primary);
+        border-color: var(--primary);
+      }
+
+      /* Utility classes */
+      .divider {
+        border-color: var(--border-color);
+      }
+
+      .divider-text {
+        background-color: var(--card-bg);
+        color: var(--text-secondary);
+        padding: 0 0.75rem;
+      }
+
+      .alert {
+        animation: slideDown 0.3s ease-out forwards;
+        opacity: 0;
+      }
+
+      @keyframes slideDown {
+        from {
+          transform: translateY(-10px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      /* Accessibility and focus styles */
+      a:focus,
+      button:focus,
+      input:focus {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      /* Utility classes that adapt to color scheme */
+      .text-white-80 {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .text-center {
+        text-align: center;
+      }
+
+      .text-sm {
+        font-size: 0.875rem;
+      }
+
+      .text-xs {
+        font-size: 0.75rem;
+      }
+
+      .font-medium {
+        font-weight: 500;
+      }
+
+      .font-bold {
+        font-weight: 700;
+      }
+
+      .mb-1 {
+        margin-bottom: 0.25rem;
+      }
+
+      .mb-2 {
+        margin-bottom: 0.5rem;
+      }
+
+      .mb-4 {
+        margin-bottom: 1rem;
+      }
+
+      .mb-6 {
+        margin-bottom: 1.5rem;
+      }
+
+      .mb-8 {
+        margin-bottom: 2rem;
+      }
+
+      .mb-10 {
+        margin-bottom: 2.5rem;
+      }
+
+      .mt-1 {
+        margin-top: 0.25rem;
+      }
+
+      .mt-6 {
+        margin-top: 1.5rem;
+      }
+
+      .mt-8 {
+        margin-top: 2rem;
+      }
+
+      .mr-2 {
+        margin-right: 0.5rem;
+      }
+
+      .py-3 {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+      }
+
+      .px-4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .py-8 {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+
+      .px-8 {
+        padding-left: 2rem;
+        padding-right: 2rem;
+      }
+
+      .w-full {
+        width: 100%;
+      }
+
+      .max-w-md {
+        max-width: 28rem;
+      }
+
+      .mx-auto {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .space-y-3 > * + * {
+        margin-top: 0.75rem;
+      }
+
+      .space-y-5 > * + * {
+        margin-top: 1.25rem;
+      }
+
+      .flex {
+        display: flex;
+      }
+
+      .items-center {
+        align-items: center;
+      }
+
+      .justify-center {
+        justify-content: center;
+      }
+
+      .justify-end {
+        justify-content: flex-end;
+      }
+
+      .rounded-full {
+        border-radius: 9999px;
+      }
+
+      .rounded-lg {
+        border-radius: 0.5rem;
+      }
+
+      .w-16 {
+        width: 4rem;
+      }
+
+      .h-16 {
+        height: 4rem;
+      }
+
+      .inline-flex {
+        display: inline-flex;
+      }
+
+      .relative {
+        position: relative;
+      }
+
+      .absolute {
+        position: absolute;
+      }
+
+      .inset-0 {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+
+      .border-t {
+        border-top-width: 1px;
+        border-top-style: solid;
+      }
+
+      .block {
+        display: block;
+      }
+
+      .appearance-none {
+        appearance: none;
+      }
+
+      .pt-2 {
+        padding-top: 0.5rem;
+      }
+
+      .hover\:underline:hover {
+        text-decoration: underline;
+      }
     </style>
-</head>
-<body class="{{ 'dark-mode' if session.get('dark_mode') else '' }}">
+  </head>
+  <body class="{{ 'dark-mode' if session.get('dark_mode') else '' }}">
     <!-- Theme toggle for login page -->
-    <button id="themeToggle" class="theme-toggle login-toggle" aria-label="Toggle theme">
-        <i class="{{ 'fas fa-sun' if session.get('dark_mode') else 'fas fa-moon' }}" aria-hidden="true"></i>
+    <button
+      id="themeToggle"
+      class="theme-toggle login-toggle"
+      aria-label="Toggle theme"
+    >
+      <i
+        class="{{ 'fas fa-sun' if session.get('dark_mode') else 'fas fa-moon' }}"
+        aria-hidden="true"
+      ></i>
     </button>
 
     <!-- Old toggle (hidden) for backward compatibility -->
-    <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle dark mode" style="display: none;">
-        <i class="{{ 'fas fa-sun' if session.get('dark_mode') else 'fas fa-moon' }}" aria-hidden="true"></i>
+    <button
+      id="darkModeToggle"
+      class="dark-mode-toggle"
+      aria-label="Toggle dark mode"
+      style="display: none"
+    >
+      <i
+        class="{{ 'fas fa-sun' if session.get('dark_mode') else 'fas fa-moon' }}"
+        aria-hidden="true"
+      ></i>
     </button>
 
     <div class="admin-container">
-        <div class="admin-sidebar" role="complementary">
-            <div class="sidebar-pattern" aria-hidden="true"></div>
-            <div class="sidebar-content">
-                <div class="mb-8">
-                    <h1 class="text-4xl font-bold mb-2">LearnHub</h1>
-                    <h2 class="text-2xl font-light text-white-80">Admin Portal</h2>
-                    <div class="badge"><i class="fas fa-shield-alt mr-2" aria-hidden="true"></i> Secure Access</div>
-                </div>
-                
-                <div class="mb-10">
-                    <p class="text-lg text-white-80 mb-4">Manage your learning platform with ease. Monitor students, courses, and analytics from one central dashboard.</p>
-                    <ul class="space-y-3">
-                        <li class="flex items-center text-white-80">
-                            <i class="fas fa-check-circle mr-2" aria-hidden="true"></i> Course Management
-                        </li>
-                        <li class="flex items-center text-white-80">
-                            <i class="fas fa-check-circle mr-2" aria-hidden="true"></i> Student Analytics
-                        </li>
-                        <li class="flex items-center text-white-80">
-                            <i class="fas fa-check-circle mr-2" aria-hidden="true"></i> Content Creation
-                        </li>
-                    </ul>
-                </div>
+      <div class="admin-sidebar" role="complementary">
+        <div class="sidebar-pattern" aria-hidden="true"></div>
+        <div class="sidebar-content">
+          <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">LearnHub</h1>
+            <h2 class="text-2xl font-light text-white-80">Admin Portal</h2>
+            <div class="badge">
+              <i class="fas fa-shield-alt mr-2" aria-hidden="true"></i> Secure
+              Access
             </div>
+          </div>
+
+          <div class="mb-10">
+            <p class="text-lg text-white-80 mb-4">
+              Manage your learning platform with ease. Monitor students,
+              courses, and analytics from one central dashboard.
+            </p>
+            <ul class="space-y-3">
+              <li class="flex items-center text-white-80">
+                <i class="fas fa-check-circle mr-2" aria-hidden="true"></i>
+                Course Management
+              </li>
+              <li class="flex items-center text-white-80">
+                <i class="fas fa-check-circle mr-2" aria-hidden="true"></i>
+                Student Analytics
+              </li>
+              <li class="flex items-center text-white-80">
+                <i class="fas fa-check-circle mr-2" aria-hidden="true"></i>
+                Content Creation
+              </li>
+            </ul>
+          </div>
         </div>
-        
-        <main class="login-form-container">
-            <div class="w-full max-w-md mx-auto">
-                <div class="text-center lg:hidden mb-8">
-                    <h1 class="text-3xl font-bold" style="color: var(--primary);">LearnHub</h1>
-                    <h2 class="text-xl font-medium" style="color: var(--text-primary);">Admin Portal</h2>
+      </div>
+
+      <main class="login-form-container">
+        <div class="w-full max-w-md mx-auto">
+          <div class="text-center lg:hidden mb-8">
+            <h1 class="text-3xl font-bold" style="color: var(--primary)">
+              LearnHub
+            </h1>
+            <h2 class="text-xl font-medium" style="color: var(--text-primary)">
+              Admin Portal
+            </h2>
+          </div>
+
+          <div class="admin-login-card">
+            <div class="py-8 px-8">
+              <div class="text-center mb-8">
+                <div
+                  class="inline-flex items-center justify-center w-16 h-16 rounded-full"
+                  style="
+                    background-color: rgba(var(--primary-rgb), 0.1);
+                    margin-bottom: 1rem;
+                  "
+                >
+                  <i
+                    class="fas fa-user-shield text-2xl"
+                    style="color: var(--primary)"
+                    aria-hidden="true"
+                  ></i>
                 </div>
-                
-                <div class="admin-login-card">
-                    <div class="py-8 px-8">
-                        <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full" style="background-color: rgba(var(--primary-rgb), 0.1); margin-bottom: 1rem;">
-                                <i class="fas fa-user-shield text-2xl" style="color: var(--primary);" aria-hidden="true"></i>
-                            </div>
-                            <h2 class="text-2xl font-bold" style="color: var(--text-primary);">
-                                Administrator Login
-                            </h2>
-                            <p class="mt-1 text-sm" style="color: var(--text-secondary);">
-                                Sign in to access your dashboard
-                            </p>
-                        </div>
+                <h2
+                  class="text-2xl font-bold"
+                  style="color: var(--text-primary)"
+                >
+                  Administrator Login
+                </h2>
+                <p class="mt-1 text-sm" style="color: var(--text-secondary)">
+                  Sign in to access your dashboard
+                </p>
+              </div>
 
-                        <!-- Flash Messages -->
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                                {% for category, message in messages %}
-                                    <div class="mb-6 rounded-lg p-4 alert" role="alert" style="background-color: {{ 'var(--danger-light)' if category == 'error' else 'var(--success-light)' }}; color: {{ 'var(--danger)' if category == 'error' else 'var(--success)' }};">
-                                        <div class="flex items-center">
-                                            <i class="fas {{ 'fa-times-circle' if category == 'error' else 'fa-check-circle' }} mr-2" aria-hidden="true"></i>
-                                            <p class="text-sm font-medium">{{ message }}</p>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                        {% endwith %}
-
-                        <form class="space-y-5" action="{{ url_for('admin_login') }}" method="POST">
-                            <div>
-                                <label for="email" class="block text-sm font-medium mb-1" style="color: var(--text-primary);">
-                                    Email Address
-                                </label>
-                                <div class="input-group">
-                                    <i class="fas fa-envelope input-icon" aria-hidden="true"></i>
-                                    <input id="email" 
-                                          name="email" 
-                                          type="email" 
-                                          autocomplete="email" 
-                                          required 
-                                          placeholder="admin@example.com"
-                                          aria-label="Email Address"
-                                          class="form-input appearance-none block w-full input-with-icon">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label for="password" class="block text-sm font-medium mb-1" style="color: var(--text-primary);">
-                                    Password
-                                </label>
-                                <div class="input-group">
-                                    <i class="fas fa-lock input-icon" aria-hidden="true"></i>
-                                    <input id="password" 
-                                          name="password" 
-                                          type="password" 
-                                          autocomplete="current-password" 
-                                          required 
-                                          placeholder="••••••••"
-                                          aria-label="Password"
-                                          class="form-input appearance-none block w-full input-with-icon">
-                                </div>
-                                <div class="flex justify-end mt-1">
-                                    <a href="#" class="text-xs" style="color: var(--primary);">Forgot password?</a>
-                                </div>
-                            </div>
-
-                            <div class="pt-2">
-                                <button type="submit" 
-                                    class="btn login-btn w-full py-3 px-4">
-                                    <i class="fas fa-sign-in-alt mr-2" aria-hidden="true"></i> Sign in to Dashboard
-                                </button>
-                            </div>
-                        </form>
-
-                        <div class="mt-8">
-                            <div class="relative">
-                                <div class="absolute inset-0 flex items-center">
-                                    <div class="w-full border-t divider"></div>
-                                </div>
-                                <div class="relative flex justify-center text-sm">
-                                    <span class="divider-text">
-                                        Options
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="mt-6">
-                                <a href="{{ url_for('home') }}" 
-                                  class="btn back-btn w-full py-3 px-4">
-                                    <i class="fas fa-home mr-2" aria-hidden="true"></i>
-                                    Return to Main Website
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+              <!-- Flash Messages -->
+              {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %} {% for category, message in messages %}
+              <div
+                class="mb-6 rounded-lg p-4 alert"
+                role="alert"
+                style="background-color: {{ 'var(--danger-light)' if category == 'error' else 'var(--success-light)' }}; color: {{ 'var(--danger)' if category == 'error' else 'var(--success)' }};"
+              >
+                <div class="flex items-center">
+                  <i
+                    class="fas {{ 'fa-times-circle' if category == 'error' else 'fa-check-circle' }} mr-2"
+                    aria-hidden="true"
+                  ></i>
+                  <p class="text-sm font-medium">{{ message }}</p>
                 </div>
-                
-                <footer class="text-center mt-8">
-                    <p class="text-sm" style="color: var(--text-secondary);">
-                        &copy; {{ now().year }} LearnHub. <span class="hidden sm:inline">All rights reserved.</span>
-                    </p>
-                    <div class="flex justify-center space-x-4 mt-2">
-                        <a href="{{ url_for('home') }}" class="text-sm hover:text-primary transition-colors" style="color: var(--text-secondary);">
-                            <i class="fas fa-home mr-1"></i> <span class="hidden sm:inline">Back to</span> Home
-                        </a>
-                        <a href="#" class="text-sm hover:text-primary transition-colors" style="color: var(--text-secondary);">
-                            <i class="fas fa-question-circle mr-1"></i> Help
-                        </a>
-                    </div>
-                </footer>
+              </div>
+              {% endfor %} {% endif %} {% endwith %}
+
+              <form
+                class="space-y-5"
+                action="{{ url_for('admin_login') }}"
+                method="POST"
+              >
+                <div>
+                  <label
+                    for="email"
+                    class="block text-sm font-medium mb-1"
+                    style="color: var(--text-primary)"
+                  >
+                    Email Address
+                  </label>
+                  <div class="input-group">
+                    <i
+                      class="fas fa-envelope input-icon"
+                      aria-hidden="true"
+                    ></i>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autocomplete="email"
+                      required
+                      placeholder="admin@example.com"
+                      aria-label="Email Address"
+                      class="form-input appearance-none block w-full input-with-icon"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    for="password"
+                    class="block text-sm font-medium mb-1"
+                    style="color: var(--text-primary)"
+                  >
+                    Password
+                  </label>
+                  <div class="input-group">
+                    <i class="fas fa-lock input-icon" aria-hidden="true"></i>
+                    <input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autocomplete="current-password"
+                      required
+                      placeholder="••••••••"
+                      aria-label="Password"
+                      class="form-input appearance-none block w-full input-with-icon"
+                    />
+                  </div>
+                  <div class="flex justify-end mt-1">
+                    <a href="#" class="text-xs" style="color: var(--primary)"
+                      >Forgot password?</a
+                    >
+                  </div>
+                </div>
+
+                <div class="pt-2">
+                  <button type="submit" class="btn login-btn w-full py-3 px-4">
+                    <i class="fas fa-sign-in-alt mr-2" aria-hidden="true"></i>
+                    Sign in to Dashboard
+                  </button>
+                </div>
+              </form>
+
+              <div class="mt-8">
+                <div class="relative">
+                  <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t divider"></div>
+                  </div>
+                  <div class="relative flex justify-center text-sm">
+                    <span class="divider-text"> Options </span>
+                  </div>
+                </div>
+
+                <div class="mt-6">
+                  <a
+                    href="{{ url_for('home') }}"
+                    class="btn back-btn w-full py-3 px-4"
+                  >
+                    <i class="fas fa-home mr-2" aria-hidden="true"></i>
+                    Return to Main Website
+                  </a>
+                </div>
+              </div>
             </div>
-        </main>
+          </div>
+
+          <footer class="text-center mt-8">
+            <p class="text-sm" style="color: var(--text-secondary)">
+              &copy; {{ now().year }} LearnHub.
+              <span class="hidden sm:inline">All rights reserved.</span>
+            </p>
+            <div class="flex justify-center space-x-4 mt-2">
+              <a
+                href="{{ url_for('home') }}"
+                class="text-sm hover:text-primary transition-colors"
+                style="color: var(--text-secondary)"
+              >
+                <i class="fas fa-home mr-1"></i>
+                <span class="hidden sm:inline">Back to</span> Home
+              </a>
+              <a
+                href="#"
+                class="text-sm hover:text-primary transition-colors"
+                style="color: var(--text-secondary)"
+              >
+                <i class="fas fa-question-circle mr-1"></i> Help
+              </a>
+            </div>
+          </footer>
+        </div>
+      </main>
     </div>
 
     <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
     <script>
-        // URL for server-side theme preference storage
-        const setDarkModeUrl = "{{ url_for('set_dark_mode') }}";
-        
-        // Form input enhancements
-        document.addEventListener('DOMContentLoaded', function() {
-            const passwordInput = document.getElementById('password');
-            const emailInput = document.getElementById('email');
-            
-            // Focus animation
-            [passwordInput, emailInput].forEach(input => {
-                if (input) {
-                    input.addEventListener('focus', function() {
-                        this.parentNode.style.borderColor = 'var(--primary)';
-                        const icon = this.parentNode.querySelector('i');
-                        if (icon) icon.style.color = 'var(--primary)';
-                    });
-                    
-                    input.addEventListener('blur', function() {
-                        this.parentNode.style.borderColor = '';
-                        const icon = this.parentNode.querySelector('i');
-                        if (icon) icon.style.color = '';
-                    });
-                }
+      // URL for server-side theme preference storage
+      const setDarkModeUrl = "{{ url_for('set_dark_mode') }}";
+
+      // Form input enhancements
+      document.addEventListener("DOMContentLoaded", function () {
+        const passwordInput = document.getElementById("password");
+        const emailInput = document.getElementById("email");
+
+        // Focus animation
+        [passwordInput, emailInput].forEach((input) => {
+          if (input) {
+            input.addEventListener("focus", function () {
+              this.parentNode.style.borderColor = "var(--primary)";
+              const icon = this.parentNode.querySelector("i");
+              if (icon) icon.style.color = "var(--primary)";
             });
+
+            input.addEventListener("blur", function () {
+              this.parentNode.style.borderColor = "";
+              const icon = this.parentNode.querySelector("i");
+              if (icon) icon.style.color = "";
+            });
+          }
         });
+      });
     </script>
-</body>
+  </body>
 </html>

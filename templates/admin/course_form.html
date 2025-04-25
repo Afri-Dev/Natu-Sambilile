@@ -1,178 +1,234 @@
-{% extends "admin/admin_base.html" %}
-
-{% block title %}{{ 'Edit Course' if course else 'Add Course' }}{% endblock %}
-{% block admin_title %}{{ 'Edit Course' if course else 'Add New Course' }}{% endblock %}
-
-{% block admin_content %}
+{% extends "admin/admin_base.html" %} {% block title %}{{ 'Edit Course' if
+course else 'Add Course' }}{% endblock %} {% block admin_title %}{{ 'Edit
+Course' if course else 'Add New Course' }}{% endblock %} {% block admin_content
+%}
 <!-- Hero Section -->
 <div class="bg-primary text-white rounded-lg mb-8 overflow-hidden">
-    <div class="px-6 py-8 relative">
-        <div class="max-w-3xl relative z-10">
-            <h1 class="text-3xl font-bold mb-2">{{ 'Edit' if course else 'Create New' }} Course</h1>
-            <p class="text-lg text-white opacity-90 mb-4">
-                {% if course %}
-                    Update the details for "{{ course.title }}"
-                {% else %}
-                    Fill in the details to create a new course for your students
-                {% endif %}
-            </p>
-        </div>
-        <!-- Decorative Elements -->
-        <div class="absolute right-0 top-0 h-full w-1/3 overflow-hidden opacity-10">
-            <div class="absolute -right-10 top-10 w-64 h-64 rounded-full bg-white"></div>
-            <div class="absolute right-40 bottom-10 w-32 h-32 rounded-full bg-white"></div>
-        </div>
+  <div class="px-6 py-8 relative">
+    <div class="max-w-3xl relative z-10">
+      <h1 class="text-3xl font-bold mb-2">
+        {{ 'Edit' if course else 'Create New' }} Course
+      </h1>
+      <p class="text-lg text-white opacity-90 mb-4">
+        {% if course %} Update the details for "{{ course.title }}" {% else %}
+        Fill in the details to create a new course for your students {% endif %}
+      </p>
     </div>
+    <!-- Decorative Elements -->
+    <div class="absolute right-0 top-0 h-full w-1/3 overflow-hidden opacity-10">
+      <div
+        class="absolute -right-10 top-10 w-64 h-64 rounded-full bg-white"
+      ></div>
+      <div
+        class="absolute right-40 bottom-10 w-32 h-32 rounded-full bg-white"
+      ></div>
+    </div>
+  </div>
 </div>
 
 <div class="max-w-4xl mx-auto">
-    <div class="stat-card p-0 overflow-hidden">
-        <div class="px-5 py-4 border-b border-border-color">
-            <h2 class="text-lg font-medium text-text-primary flex items-center">
-                <i class="fas fa-edit text-primary mr-2"></i> Course Details
-            </h2>
-        </div>
-        
-        <div class="p-6">
-            <form method="POST" class="space-y-6">
-                <!-- Title -->
-                <div>
-                    <label for="title" class="block text-sm font-medium text-text-secondary mb-1">Course Title</label>
-                    <input type="text" 
-                           name="title" 
-                           id="title" 
-                           required
-                           value="{{ course.title if course else '' }}"
-                           placeholder="E.g. Introduction to Web Development"
-                           class="w-full px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary">
-                </div>
-
-                <!-- Description -->
-                <div>
-                    <label for="description" class="block text-sm font-medium text-text-secondary mb-1">Description</label>
-                    <textarea name="description" 
-                              id="description" 
-                              rows="5" 
-                              required
-                              placeholder="Provide a detailed description of the course"
-                              class="w-full px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary">{{ course.description if course else '' }}</textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Tags -->
-                    <div>
-                        <label for="tags" class="block text-sm font-medium text-text-secondary mb-1">
-                            Tags <span class="text-xs font-normal text-text-secondary">(comma separated)</span>
-                        </label>
-                        <input type="text" 
-                               name="tags" 
-                               id="tags" 
-                               required
-                               value="{{ course.semantic_tags if course else '' }}"
-                               placeholder="E.g. web, html, css, javascript"
-                               class="w-full px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary">
-                        <p class="text-xs text-text-secondary mt-1">Separate tags with commas to make your course discoverable</p>
-                    </div>
-                    
-                    <!-- Duration -->
-                    <div>
-                        <label for="duration_weeks" class="block text-sm font-medium text-text-secondary mb-1">Duration (weeks)</label>
-                        <div class="flex">
-                            <input type="number" 
-                                   name="duration_weeks" 
-                                   id="duration_weeks" 
-                                   required
-                                   min="1"
-                                   value="{{ course.duration_weeks if course else '12' }}"
-                                   class="flex-grow px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary">
-                            <span class="flex items-center justify-center px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-l-0 border-border-color rounded-r-md text-text-secondary">weeks</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Max Students -->
-                <div>
-                    <label for="max_students" class="block text-sm font-medium text-text-secondary mb-1">Maximum Students</label>
-                    <div class="flex">
-                        <input type="number" 
-                               name="max_students" 
-                               id="max_students" 
-                               required
-                               min="1"
-                               max="500"
-                               value="{{ course.max_students if course else '50' }}"
-                               class="flex-grow px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary">
-                        <span class="flex items-center justify-center px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-l-0 border-border-color rounded-r-md text-text-secondary">students</span>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex justify-between items-center pt-4 border-t border-border-color">
-                    <a href="{{ url_for('admin_dashboard') }}"
-                       class="px-5 py-2 border border-border-color rounded-md text-text-secondary hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        Cancel
-                    </a>
-                    
-                    <div class="flex space-x-3">
-                        {% if course %}
-                        <button type="button" 
-                                onclick="if(confirm('Are you sure you want to delete this course?')) { window.location.href='{{ url_for('admin_delete_course', course_id=course.id) }}'; }"
-                                class="px-5 py-2 bg-danger-light text-danger border border-danger rounded-md hover:bg-danger hover:text-white transition-colors">
-                            <i class="fas fa-trash-alt mr-2"></i> Delete
-                        </button>
-                        {% endif %}
-                        
-                        <button type="submit"
-                                class="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
-                            <i class="fas fa-{{ 'save' if course else 'plus-circle' }} mr-2"></i>
-                            {{ 'Save Changes' if course else 'Create Course' }}
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
+  <div class="stat-card p-0 overflow-hidden">
+    <div class="px-5 py-4 border-b border-border-color">
+      <h2 class="text-lg font-medium text-text-primary flex items-center">
+        <i class="fas fa-edit text-primary mr-2"></i> Course Details
+      </h2>
     </div>
-    
-    <!-- Information Card -->
-    {% if not course %}
-    <div class="bg-accent-light border border-accent-dark rounded-lg p-5 mt-6">
-        <div class="flex items-start">
-            <div class="mr-4 text-accent">
-                <i class="fas fa-lightbulb text-xl"></i>
-            </div>
-            <div>
-                <h3 class="font-medium text-accent">Pro Tips for Creating Great Courses</h3>
-                <ul class="list-disc list-inside text-sm mt-2 space-y-1">
-                    <li>Keep titles clear and descriptive</li>
-                    <li>Use specific tags to help with discoverability</li>
-                    <li>Set a realistic course duration</li>
-                    <li>After creating a course, you can add lessons and quizzes</li>
-                </ul>
-            </div>
+
+    <div class="p-6">
+      <form method="POST" class="space-y-6">
+        <!-- Title -->
+        <div>
+          <label
+            for="title"
+            class="block text-sm font-medium text-text-secondary mb-1"
+            >Course Title</label
+          >
+          <input
+            type="text"
+            name="title"
+            id="title"
+            required
+            value="{{ course.title if course else '' }}"
+            placeholder="E.g. Introduction to Web Development"
+            class="w-full px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary"
+          />
         </div>
+
+        <!-- Description -->
+        <div>
+          <label
+            for="description"
+            class="block text-sm font-medium text-text-secondary mb-1"
+            >Description</label
+          >
+          <textarea
+            name="description"
+            id="description"
+            rows="5"
+            required
+            placeholder="Provide a detailed description of the course"
+            class="w-full px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary"
+          >
+{{ course.description if course else '' }}</textarea
+          >
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Tags -->
+          <div>
+            <label
+              for="tags"
+              class="block text-sm font-medium text-text-secondary mb-1"
+            >
+              Tags
+              <span class="text-xs font-normal text-text-secondary"
+                >(comma separated)</span
+              >
+            </label>
+            <input
+              type="text"
+              name="tags"
+              id="tags"
+              required
+              value="{{ course.semantic_tags if course else '' }}"
+              placeholder="E.g. web, html, css, javascript"
+              class="w-full px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary"
+            />
+            <p class="text-xs text-text-secondary mt-1">
+              Separate tags with commas to make your course discoverable
+            </p>
+          </div>
+
+          <!-- Duration -->
+          <div>
+            <label
+              for="duration_weeks"
+              class="block text-sm font-medium text-text-secondary mb-1"
+              >Duration (weeks)</label
+            >
+            <div class="flex">
+              <input
+                type="number"
+                name="duration_weeks"
+                id="duration_weeks"
+                required
+                min="1"
+                value="{{ course.duration_weeks if course else '12' }}"
+                class="flex-grow px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary"
+              />
+              <span
+                class="flex items-center justify-center px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-l-0 border-border-color rounded-r-md text-text-secondary"
+                >weeks</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Max Students -->
+        <div>
+          <label
+            for="max_students"
+            class="block text-sm font-medium text-text-secondary mb-1"
+            >Maximum Students</label
+          >
+          <div class="flex">
+            <input
+              type="number"
+              name="max_students"
+              id="max_students"
+              required
+              min="1"
+              max="500"
+              value="{{ course.max_students if course else '50' }}"
+              class="flex-grow px-3 py-2 border border-border-color rounded-md bg-card-bg focus:ring-2 focus:ring-primary focus:border-primary"
+            />
+            <span
+              class="flex items-center justify-center px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-l-0 border-border-color rounded-r-md text-text-secondary"
+              >students</span
+            >
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div
+          class="flex justify-between items-center pt-4 border-t border-border-color"
+        >
+          <a
+            href="{{ url_for('admin_dashboard') }}"
+            class="px-5 py-2 border border-border-color rounded-md text-text-secondary hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </a>
+
+          <div class="flex space-x-3">
+            {% if course %}
+            <button
+              type="button"
+              onclick="if(confirm('Are you sure you want to delete this course?')) { window.location.href='{{ url_for('admin_delete_course', course_id=course.id) }}'; }"
+              class="px-5 py-2 bg-danger-light text-danger border border-danger rounded-md hover:bg-danger hover:text-white transition-colors"
+            >
+              <i class="fas fa-trash-alt mr-2"></i> Delete
+            </button>
+            {% endif %}
+
+            <button
+              type="submit"
+              class="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+            >
+              <i
+                class="fas fa-{{ 'save' if course else 'plus-circle' }} mr-2"
+              ></i>
+              {{ 'Save Changes' if course else 'Create Course' }}
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
-    {% endif %}
+  </div>
+
+  <!-- Information Card -->
+  {% if not course %}
+  <div class="bg-accent-light border border-accent-dark rounded-lg p-5 mt-6">
+    <div class="flex items-start">
+      <div class="mr-4 text-accent">
+        <i class="fas fa-lightbulb text-xl"></i>
+      </div>
+      <div>
+        <h3 class="font-medium text-accent">
+          Pro Tips for Creating Great Courses
+        </h3>
+        <ul class="list-disc list-inside text-sm mt-2 space-y-1">
+          <li>Keep titles clear and descriptive</li>
+          <li>Use specific tags to help with discoverability</li>
+          <li>Set a realistic course duration</li>
+          <li>After creating a course, you can add lessons and quizzes</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <!-- Add tag input enhancement -->
 <script>
-    const tagsInput = document.getElementById('tags');
-    
-    tagsInput.addEventListener('input', function() {
-        // Convert input to lowercase and replace multiple spaces/commas
-        this.value = this.value.toLowerCase()
-            .replace(/\s*,\s*/g, ',')  // Normalize spaces around commas
-            .replace(/,+/g, ',')       // Remove multiple commas
-            .replace(/^,|,$/g, '');    // Remove leading/trailing commas
-    });
+  const tagsInput = document.getElementById("tags");
 
-    tagsInput.addEventListener('keydown', function(e) {
-        if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            if (!this.value.endsWith(',') && this.value.length > 0) {
-                this.value += ',';
-            }
-        }
-    });
+  tagsInput.addEventListener("input", function () {
+    // Convert input to lowercase and replace multiple spaces/commas
+    this.value = this.value
+      .toLowerCase()
+      .replace(/\s*,\s*/g, ",") // Normalize spaces around commas
+      .replace(/,+/g, ",") // Remove multiple commas
+      .replace(/^,|,$/g, ""); // Remove leading/trailing commas
+  });
+
+  tagsInput.addEventListener("keydown", function (e) {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      if (!this.value.endsWith(",") && this.value.length > 0) {
+        this.value += ",";
+      }
+    }
+  });
 </script>
 {% endblock %}

@@ -676,9 +676,11 @@ def admin_dashboard():
         db.func.count(db.distinct(User.id)).filter(User.is_admin == False).label('total_students'),
         db.func.count(Enrollment.id).label('total_enrollments'),
         db.func.count(db.case([(Enrollment.status == 'completed', 1)])).label('completed_enrollments')
-    ).select_from(db.outerjoin(Course, Enrollment.course_id == Course.id)
-      .outerjoin(User, (User.id == Enrollment.user_id) & (User.is_admin == False))
-    ).first()
+    ).select_from(Enrollment)\
+      .outerjoin(Course, Enrollment.course_id == Course.id)\
+      .outerjoin(User, Enrollment.user_id == User.id)\
+      .filter(User.is_admin == False)\
+      .first()
 
     total_courses = stats_query.total_courses
     total_students = stats_query.total_students

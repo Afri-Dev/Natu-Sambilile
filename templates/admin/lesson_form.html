@@ -1,153 +1,177 @@
-{% extends "admin/admin_base.html" %}
-
-{% block title %}{{ 'Edit' if lesson else 'New' }} Lesson{% endblock %}
-
-{% block admin_title %}{{ 'Edit' if lesson else 'New' }} Lesson{% endblock %}
-
-{% block admin_content %}
+{% extends "admin/admin_base.html" %} {% block title %}{{ 'Edit' if lesson else
+'New' }} Lesson{% endblock %} {% block admin_title %}{{ 'Edit' if lesson else
+'New' }} Lesson{% endblock %} {% block admin_content %}
 <section class="py-6">
-    <div class="container">
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h2 class="card-title">{{ 'Edit Lesson' if lesson else 'Create New Lesson' }}</h2>
-                
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} mb-4">
-                        <div>
-                            <span>{{ message }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% endif %}
-                {% endwith %}
-                
-                <form method="POST" enctype="multipart/form-data">
-                    {{ form.csrf_token }}
-                    
-                    <div class="grid grid-cols-1 gap-6">
-                        <!-- Title -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Lesson Title</span>
-                            </label>
-                            {{ form.title(class="input input-bordered w-full") }}
-                            {% if form.title.errors %}
-                            <div class="text-error mt-1">
-                                {% for error in form.title.errors %}
-                                <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Content -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Content</span>
-                            </label>
-                            {{ form.content(class="textarea textarea-bordered h-64", id="lessonContent") }}
-                            {% if form.content.errors %}
-                            <div class="text-error mt-1">
-                                {% for error in form.content.errors %}
-                                <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Video URL -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Video URL (YouTube or Vimeo)</span>
-                            </label>
-                            {{ form.video_url(class="input input-bordered w-full", placeholder="https://youtu.be/...") }}
-                            {% if form.video_url.errors %}
-                            <div class="text-error mt-1">
-                                {% for error in form.video_url.errors %}
-                                <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            <label class="label">
-                                <span class="label-text-alt">Optional: Add a video URL for this lesson</span>
-                            </label>
-                        </div>
-                        
-                        <!-- Resources -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Additional Resources</span>
-                            </label>
-                            {{ form.resources(class="textarea textarea-bordered h-32", placeholder="Enter links or descriptions of additional resources, one per line") }}
-                            {% if form.resources.errors %}
-                            <div class="text-error mt-1">
-                                {% for error in form.resources.errors %}
-                                <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            <label class="label">
-                                <span class="label-text-alt">Optional: Add links to documents, videos, websites, etc.</span>
-                            </label>
-                        </div>
-                        
-                        <!-- Duration -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Estimated Time to Complete (minutes)</span>
-                            </label>
-                            {{ form.duration_minutes(class="input input-bordered w-full", type="number", min="1") }}
-                            {% if form.duration_minutes.errors %}
-                            <div class="text-error mt-1">
-                                {% for error in form.duration_minutes.errors %}
-                                <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="flex justify-between mt-4">
-                            {% if lesson %}
-                            <a href="{{ url_for('admin_course_lessons', course_id=course.id) }}" class="btn btn-outline">
-                                Cancel
-                            </a>
-                            {% else %}
-                            <a href="{{ url_for('admin_course_lessons', course_id=course_id) }}" class="btn btn-outline">
-                                Cancel
-                            </a>
-                            {% endif %}
-                            <button type="submit" class="btn btn-primary">
-                                {% if lesson %}Update{% else %}Create{% endif %} Lesson
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</section>
-{% endblock %}
+  <div class="container">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">
+          {{ 'Edit Lesson' if lesson else 'Create New Lesson' }}
+        </h2>
 
-{% block scripts %}
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %} {% for category, message in messages %}
+        <div class="alert alert-{{ category }} mb-4">
+          <div>
+            <span>{{ message }}</span>
+          </div>
+        </div>
+        {% endfor %} {% endif %} {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data">
+          {{ form.csrf_token }}
+
+          <div class="grid grid-cols-1 gap-6">
+            <!-- Title -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Lesson Title</span>
+              </label>
+              {{ form.title(class="input input-bordered w-full") }} {% if
+              form.title.errors %}
+              <div class="text-error mt-1">
+                {% for error in form.title.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Content -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Content</span>
+              </label>
+              {{ form.content(class="textarea textarea-bordered h-64",
+              id="lessonContent") }} {% if form.content.errors %}
+              <div class="text-error mt-1">
+                {% for error in form.content.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Video URL -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Video URL (YouTube or Vimeo)</span>
+              </label>
+              {{ form.video_url(class="input input-bordered w-full",
+              placeholder="https://youtu.be/...") }} {% if form.video_url.errors
+              %}
+              <div class="text-error mt-1">
+                {% for error in form.video_url.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+              <label class="label">
+                <span class="label-text-alt"
+                  >Optional: Add a video URL for this lesson</span
+                >
+              </label>
+            </div>
+
+            <!-- Resources -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Additional Resources</span>
+              </label>
+              {{ form.resources(class="textarea textarea-bordered h-32",
+              placeholder="Enter links or descriptions of additional resources,
+              one per line") }} {% if form.resources.errors %}
+              <div class="text-error mt-1">
+                {% for error in form.resources.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+              <label class="label">
+                <span class="label-text-alt"
+                  >Optional: Add links to documents, videos, websites,
+                  etc.</span
+                >
+              </label>
+            </div>
+
+            <!-- Duration -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text"
+                  >Estimated Time to Complete (minutes)</span
+                >
+              </label>
+              {{ form.duration_minutes(class="input input-bordered w-full",
+              type="number", min="1") }} {% if form.duration_minutes.errors %}
+              <div class="text-error mt-1">
+                {% for error in form.duration_minutes.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="flex justify-between mt-4">
+              {% if lesson %}
+              <a
+                href="{{ url_for('admin_course_lessons', course_id=course.id) }}"
+                class="btn btn-outline"
+              >
+                Cancel
+              </a>
+              {% else %}
+              <a
+                href="{{ url_for('admin_course_lessons', course_id=course_id) }}"
+                class="btn btn-outline"
+              >
+                Cancel
+              </a>
+              {% endif %}
+              <button type="submit" class="btn btn-primary">
+                {% if lesson %}Update{% else %}Create{% endif %} Lesson
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %} {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css"
+/>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const easyMDE = new EasyMDE({
-            element: document.getElementById('lessonContent'),
-            spellChecker: false,
-            autosave: {
-                enabled: true,
-                uniqueId: "lessonEditor",
-                delay: 1000,
-            },
-            toolbar: ["bold", "italic", "heading", "|", 
-                      "quote", "unordered-list", "ordered-list", "|", 
-                      "link", "image", "table", "|", 
-                      "preview", "side-by-side", "fullscreen"]
-        });
+  document.addEventListener("DOMContentLoaded", function () {
+    const easyMDE = new EasyMDE({
+      element: document.getElementById("lessonContent"),
+      spellChecker: false,
+      autosave: {
+        enabled: true,
+        uniqueId: "lessonEditor",
+        delay: 1000,
+      },
+      toolbar: [
+        "bold",
+        "italic",
+        "heading",
+        "|",
+        "quote",
+        "unordered-list",
+        "ordered-list",
+        "|",
+        "link",
+        "image",
+        "table",
+        "|",
+        "preview",
+        "side-by-side",
+        "fullscreen",
+      ],
     });
+  });
 </script>
-{% endblock %} 
+{% endblock %}
