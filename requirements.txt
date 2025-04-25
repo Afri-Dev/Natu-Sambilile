@@ -1,9 +1,9 @@
-Flask==2.0.1
+Flask==2.2.5
 rdflib==6.3.2
 SQLAlchemy==1.4.23
 python-dotenv==0.19.0
 flask-sqlalchemy==2.5.1
 flask-login==0.5.0
 owlready2==0.37
-werkzeug==2.0.1
+werkzeug==3.0.6
 flask-wtf==0.15.1
