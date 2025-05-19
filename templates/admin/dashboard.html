@@ -215,7 +215,7 @@ LearnHub{% endblock %} {% block content %}
                 >
               </div>
               <div class="progress-bar">
-                {% set percentage = (count / stats.total_courses * 100)|round %}
+                {% set percentage = (count / stats.total_courses * 100)|round if stats.total_courses > 0 else 0 %}
                 <div
                   class="progress-bar-fill"
                   style="width: {{ percentage }}%"
@@ -447,7 +447,7 @@ LearnHub{% endblock %} {% block content %}
                   course.max_students > 0 else 0 %}
                   <div
                     class="progress-bar-fill"
-                    style="width: {{ percent }}%"
+                    style="width: {{ percent }}%;"
                   ></div>
                 </div>
               </div>
@@ -498,116 +498,150 @@ LearnHub{% endblock %} {% block content %}
 {% block dashboard_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 <script>
+  // When DOM is fully loaded
   document.addEventListener('DOMContentLoaded', function() {
-      // Animate count up for stat values
-      document.querySelectorAll('.stat-value[data-count]').forEach(element => {
-          const target = parseInt(element.getAttribute('data-count'));
-          const duration = 2000; // ms
-          const frameDuration = 1000/60; // 60fps
-          const totalFrames = Math.round(duration / frameDuration);
-          let frame = 0;
-          const countTo = parseInt(target, 10);
+    // ===== ANIMATE STAT COUNTERS =====
+    document.querySelectorAll('.stat-value[data-count]').forEach(element => {
+      const target = parseInt(element.getAttribute('data-count') || 0);
+      const duration = 2000; // ms
+      const frameDuration = 1000/60; // 60fps
+      const totalFrames = Math.round(duration / frameDuration);
+      let frame = 0;
+      const countTo = parseInt(target, 10);
 
-          const counter = setInterval(() => {
-              frame++;
-              const progress = frame / totalFrames;
-              const currentCount = Math.round(countTo * progress);
+      const counter = setInterval(() => {
+        frame++;
+        const progress = frame / totalFrames;
+        const currentCount = Math.round(countTo * progress);
 
-              if (progress >= 1) {
-                  element.textContent = countTo;
-                  clearInterval(counter);
-              } else {
-                  element.textContent = currentCount;
-              }
-          }, frameDuration);
-      });
-
-      // Enrollment Chart
-      const ctx = document.getElementById('enrollmentChart').getContext('2d');
-
-      // Extract data from the stats
-      const enrollmentData = {{ stats.monthly_enrollments|tojson }};
-      const labels = enrollmentData.map(item => item.month);
-      const data = enrollmentData.map(item => item.count);
-
-      const enrollmentChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-              labels: labels,
-              datasets: [{
-                  label: 'New Enrollments',
-                  data: data,
-                  fill: true,
-                  backgroundColor: 'rgba(59, 110, 246, 0.1)',
-                  borderColor: '#3b6ef6',
-                  tension: 0.4,
-                  pointBackgroundColor: '#3b6ef6',
-                  pointBorderColor: '#fff',
-                  pointBorderWidth: 2,
-                  pointRadius: 4,
-                  pointHoverRadius: 6
-              }]
+        if (progress >= 1) {
+          element.textContent = countTo;
+          clearInterval(counter);
+        } else {
+          element.textContent = currentCount;
+        }
+      }, frameDuration);
+    });
+    
+    // ===== INITIALIZE ENROLLMENT CHART =====
+    initEnrollmentChart();
+    
+    // ===== SETUP SEARCH & FILTER FUNCTIONALITY =====
+    setupCourseSearch();
+    
+    // ===== INITIALIZE SORTING =====
+    sortCourses('title');
+  });
+  
+  // Function to initialize the enrollment chart
+  function initEnrollmentChart() {
+    try {
+      const ctx = document.getElementById('enrollmentChart');
+      if (!ctx) return; // Exit if chart element doesn't exist
+      
+      const context2d = ctx.getContext('2d');
+      
+      // Default sample data
+      let labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      let data = [10, 15, 8, 20, 25, 12];
+      
+      // Use server data if available and valid
+      const serverData = {{ stats.monthly_enrollments|tojson|default('null')|safe }};
+      
+      if (serverData && Array.isArray(serverData) && serverData.length > 0) {
+        // Extract month labels and count values
+        labels = serverData.map(item => item.month || '');
+        data = serverData.map(item => item.count || 0);
+      }
+      
+      new Chart(context2d, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'New Enrollments',
+            data: data,
+            fill: true,
+            backgroundColor: 'rgba(59, 110, 246, 0.1)',
+            borderColor: '#3b6ef6',
+            tension: 0.4,
+            pointBackgroundColor: '#3b6ef6',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 2000,
+            easing: 'easeOutQuart'
           },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              animation: {
-                  duration: 2000,
-                  easing: 'easeOutQuart'
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: '#fff',
+              titleColor: '#0f172a',
+              bodyColor: '#334155',
+              titleFont: {
+                size: 14,
+                weight: 'bold'
               },
-              plugins: {
-                  legend: {
-                      display: false
-                  },
-                  tooltip: {
-                      backgroundColor: '#fff',
-                      titleColor: '#0f172a',
-                      bodyColor: '#334155',
-                      titleFont: {
-                          size: 14,
-                          weight: 'bold'
-                      },
-                      bodyFont: {
-                          size: 13
-                      },
-                      padding: 12,
-                      borderColor: '#e2e8f0',
-                      borderWidth: 1,
-                      displayColors: false,
-                      callbacks: {
-                          title: function(tooltipItems) {
-                              return tooltipItems[0].label + ' ' + new Date().getFullYear();
-                          },
-                          label: function(context) {
-                              return context.parsed.y + ' new enrollments';
-                          }
-                      }
-                  }
+              bodyFont: {
+                size: 13
               },
-              scales: {
-                  x: {
-                      grid: {
-                          display: false
-                      },
-                      ticks: {
-                          color: '#64748b'
-                      }
-                  },
-                  y: {
-                      beginAtZero: true,
-                      grid: {
-                          color: '#e2e8f0'
-                      },
-                      ticks: {
-                          color: '#64748b',
-                          precision: 0
-                      }
-                  }
+              padding: 12,
+              borderColor: '#e2e8f0',
+              borderWidth: 1,
+              displayColors: false,
+              callbacks: {
+                title: function(tooltipItems) {
+                  return tooltipItems[0].label + ' ' + new Date().getFullYear();
+                },
+                label: function(context) {
+                  return context.parsed.y + ' new enrollments';
+                }
               }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: '#64748b'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: '#e2e8f0'
+              },
+              ticks: {
+                color: '#64748b',
+                precision: 0
+              }
+            }
           }
+        }
       });
-
-      // Search and Filter Functionality
+    } catch (error) {
+      console.error('Error rendering chart:', error);
+      const chartEl = document.getElementById('enrollmentChart');
+      if (chartEl) {
+        chartEl.parentElement.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-exclamation-circle mb-2"></i><p>Chart could not be loaded</p></div>';
+      }
+    }
+  }
+  
+  // Function to setup course search and filtering
+  function setupCourseSearch() {
+    // Search and Filter Functionality
       const courseSearch = document.getElementById('courseSearch');
       const filterDuration = document.getElementById('filterDuration');
       const filterCategory = document.getElementById('filterCategory');
@@ -732,4 +766,5 @@ LearnHub{% endblock %} {% block content %}
       sortCourses('title');
   });
 </script>
-{% endblock %} {% endblock %}
+{% endblock dashboard_scripts %}
+{% endblock content %}

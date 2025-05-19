@@ -749,20 +749,35 @@ def admin_dashboard():
         db.contains_eager(Enrollment.course)
     ).order_by(Enrollment.enrolled_at.desc()).limit(5).all()
     
-    # Prepare statistics
+    # Ensure default values for any missing data to prevent template errors
+    if not monthly_enrollments:
+        # Provide at least 6 months of empty data if no enrollments exist
+        current = datetime.utcnow()
+        for i in range(6, 0, -1):
+            month_date = current - timedelta(days=30*i)
+            monthly_enrollments.append({
+                "month": month_date.strftime('%b'),
+                "count": 0
+            })
+    
+    # Format categories for proper display in the template
+    categories_dict = {}
+    for tag, count in category_counts.items():
+        categories_dict[tag] = count
+    
+    # Prepare statistics with robust default values
     stats = {
-        'total_courses': total_courses,
-        'total_students': total_students,
-        'total_enrollments': total_enrollments,
-        'completion_rate': completion_rate,
-        'categories': sorted_categories,
-        'top_categories': top_categories,
-        'monthly_enrollments': monthly_enrollments
+        'total_courses': total_courses or 0,
+        'total_students': total_students or 0,
+        'enrollments': total_enrollments or 0,
+        'completion_rate': completion_rate or 0,
+        'monthly_enrollments': monthly_enrollments,
     }
     
     return render_template('admin/dashboard.html', 
                            stats=stats, 
                            courses=courses,
+                           categories=categories_dict,
                            recent_enrollments=recent_enrollments,
                            recent_completions=recent_completions)
 
