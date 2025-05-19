@@ -61,9 +61,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_admin = db.Column(db.Boolean, default=False)
-    enrollments = db.relationship('Enrollment', backref='student', lazy=True, 
-                                foreign_keys='Enrollment.user_id',
-                                overlaps="student")
+    enrollments = db.relationship('Enrollment', backref='student', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -84,31 +82,14 @@ class Course(db.Model):
     duration_weeks = db.Column(db.Integer, default=12)
 
 class Enrollment(db.Model):
-    """
-    Enrollment model tracking student enrollment in courses.
-    Establishes the many-to-many relationship between users and courses.
-    """
-    __tablename__ = 'enrollment'
-    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False, index=True)
-    enrolled_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    status = db.Column(db.String(20), default='active', index=True)  # active, completed, dropped
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    enrolled_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='active')  # active, completed, dropped
     progress = db.Column(db.Float, default=0.0)  # 0 to 100
     
-    # Define relationship to Course only, User relationship comes from backref
-    # Removed the backref since it's already defined in Course model
-    course = db.relationship('Course', lazy='joined')
-    
-    __table_args__ = (
-        db.UniqueConstraint('user_id', 'course_id', name='unique_enrollment'),
-        db.Index('idx_enrollment_status', 'status'),
-    )
-    
-    def __repr__(self):
-        """String representation of the enrollment"""
-        return f"<Enrollment {self.id}: User {self.user_id} in Course {self.course_id}>"
+    __table_args__ = (db.UniqueConstraint('user_id', 'course_id', name='unique_enrollment'),)
 
 class LearningPath(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -118,25 +99,15 @@ class LearningPath(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 class Lesson(db.Model):
-    """
-    Lesson model representing educational content within a course.
-    Contains all information needed to display a lesson to a student.
-    """
-    __tablename__ = 'lesson'
-    
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False, index=True)
+    title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    lesson_number = db.Column(db.Integer, nullable=False, index=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False, index=True)
-    
-    # Explicit relationship definition
-    course = db.relationship('Course', backref=db.backref('lessons', 
-                                                        lazy=True, 
-                                                        order_by='Lesson.lesson_number'), 
-                           lazy='joined')
+    lesson_number = db.Column(db.Integer, nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    course = db.relationship('Course', backref='lessons', lazy=True)
     
     # These columns might not exist in the database yet
+    # Use __table_args__ to set these columns to be deferred/nullable
     video_url = db.Column(db.String(200), nullable=True)
     resources = db.Column(db.Text, nullable=True)
     duration_minutes = db.Column(db.Integer, nullable=True, default=60)
@@ -145,10 +116,6 @@ class Lesson(db.Model):
     def get_duration(self):
         """Safe getter for duration_minutes with fallback"""
         return self.duration_minutes if self.duration_minutes is not None else 60
-    
-    def __repr__(self):
-        """String representation of the lesson"""
-        return f"<Lesson {self.id}: {self.title} (Course {self.course_id})>"
 
 class LessonCompletion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -157,33 +124,11 @@ class LessonCompletion(db.Model):
     completed_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Quiz(db.Model):
-    """
-    Quiz model representing a set of questions to test student knowledge.
-    Each quiz is associated with a specific lesson.
-    """
-    __tablename__ = 'quiz'
-    
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False, index=True)
-    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False, index=True)
-    
-    # Define relationships explicitly
-    lesson = db.relationship('Lesson', 
-                          backref=db.backref('quiz', uselist=False, cascade="all, delete-orphan"), 
-                          lazy='joined',
-                          single_parent=True)
-    questions = db.relationship('QuizQuestion', 
-                             backref='quiz', 
-                             lazy='select',
-                             cascade="all, delete-orphan")
-    attempts = db.relationship('QuizAttempt', 
-                            backref='quiz', 
-                            lazy='dynamic',
-                            cascade="all, delete-orphan")
-    
-    def __repr__(self):
-        """String representation of the quiz"""
-        return f"<Quiz {self.id}: {self.title} for Lesson {self.lesson_id}>"
+    title = db.Column(db.String(100), nullable=False)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
+    lesson = db.relationship('Lesson', backref=db.backref('quiz', uselist=False), lazy=True)
+    questions = db.relationship('QuizQuestion', backref='quiz', lazy=True)
 
 class QuizQuestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -637,9 +582,6 @@ def admin_redirect():
 @login_required
 @admin_required
 def admin_dashboard():
-    """
-    Admin dashboard view showing platform statistics and recent activity.
-    """
     # Use eager loading to reduce database queries
     courses = Course.query.options(
         db.joinedload(Course.enrollments)
@@ -675,17 +617,10 @@ def admin_dashboard():
     # Sort categories by count
     sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
     
-    # Top categories (top 6)
-    top_categories = dict(sorted_categories[:6])
-    
-    # Recent activity - use joins explicitly due to relationship changes
-    recent_enrollments = Enrollment.query.join(
-        User, User.id == Enrollment.user_id
-    ).join(
-        Course, Course.id == Enrollment.course_id
-    ).options(
-        db.contains_eager(Enrollment.student),
-        db.contains_eager(Enrollment.course)
+    # Recent activity
+    recent_enrollments = Enrollment.query.options(
+        db.joinedload(Enrollment.user),
+        db.joinedload(Enrollment.course)
     ).order_by(Enrollment.enrolled_at.desc()).limit(5).all()
     
     # Prepare statistics for the template
@@ -694,8 +629,7 @@ def admin_dashboard():
         'total_students': total_students,
         'total_enrollments': total_enrollments,
         'completion_rate': completion_rate,
-        'categories': sorted_categories,
-        'top_categories': top_categories
+        'categories': sorted_categories
     }
     
     return render_template('admin/dashboard.html', 
@@ -761,10 +695,6 @@ def set_dark_mode():
         return jsonify({"status": "error", "message": "Invalid dark_mode value"}), 400
 
 def add_sample_courses():
-    """
-    Add sample courses, lessons, quizzes, and quiz questions to the database.
-    This function is used for initial data seeding.
-    """
     # Create admin user if none exists
     admin_email = 'bupechiyana11@gmail.com'
     admin = User.query.filter_by(email=admin_email).first()
@@ -822,7 +752,7 @@ def add_sample_courses():
             # print(f"  Course '{course_data['title']}' already exists.")
 
     try:
-    db.session.commit()
+        db.session.commit()
         print(f"Committed course additions/checks.")
     except Exception as e:
         db.session.rollback()
@@ -895,12 +825,6 @@ def add_sample_courses():
 @app.route('/admin/courses/<int:course_id>/lessons')
 @admin_required
 def admin_course_lessons(course_id):
-    """
-    Display and manage lessons for a given course.
-    
-    Args:
-        course_id: The ID of the course to display lessons for
-    """
     course = Course.query.get_or_404(course_id)
     
     try:
@@ -944,12 +868,6 @@ def admin_course_lessons(course_id):
 @app.route('/admin/lessons/new/<int:course_id>', methods=['GET', 'POST'])
 @admin_required
 def admin_new_lesson(course_id):
-    """
-    Create a new lesson for a course.
-    
-    Args:
-        course_id: ID of the course to add a lesson to
-    """
     course = Course.query.get_or_404(course_id)
     form = LessonForm()
     
@@ -969,7 +887,7 @@ def admin_new_lesson(course_id):
         )
         
         db.session.add(lesson)
-    db.session.commit()
+        db.session.commit()
 
         flash('Lesson created successfully!', 'success')
         return redirect(url_for('admin_course_lessons', course_id=course_id))
@@ -1025,15 +943,6 @@ def admin_delete_lesson(lesson_id):
 @app.route('/admin/lessons/<int:lesson_id>/reorder', methods=['POST'])
 @admin_required
 def admin_reorder_lesson(lesson_id):
-    """
-    Reorder lessons for a course by moving a lesson up or down.
-    
-    Args:
-        lesson_id: ID of the lesson to reorder
-        
-    Returns:
-        JSON response with success status and message
-    """
     lesson = Lesson.query.get_or_404(lesson_id)
     direction = request.json.get('direction')
     course_id = request.json.get('course_id') or lesson.course_id
@@ -1067,7 +976,7 @@ def admin_reorder_lesson(lesson_id):
     lesson.lesson_number = target_lesson_number
     target_lesson.lesson_number = current_lesson_number
     
-        db.session.commit()
+    db.session.commit()
 
     return jsonify({'success': True, 'message': f'Lesson moved {direction} successfully'})
 
@@ -1133,7 +1042,7 @@ def admin_delete_quiz(quiz_id):
     
     # Delete the quiz
     db.session.delete(quiz)
-        db.session.commit()
+    db.session.commit()
 
     flash('Quiz deleted successfully!', 'success')
     return redirect(url_for('admin_course_lessons', course_id=course_id))
@@ -1145,12 +1054,12 @@ def admin_new_question(quiz_id):
     form = QuizQuestionForm()
     
     if form.validate_on_submit():
-            question = QuizQuestion(
+        question = QuizQuestion(
             quiz_id=quiz_id,
             question_text=form.question_text.data
-            )
-            db.session.add(question)
-            db.session.commit()
+        )
+        db.session.add(question)
+        db.session.commit()
 
         flash('Question added successfully! Now add some options.', 'success')
         return redirect(url_for('admin_edit_quiz', quiz_id=quiz_id))
@@ -1179,12 +1088,12 @@ def admin_new_option(question_id):
     form = QuizOptionForm()
     
     if form.validate_on_submit():
-                option = QuizOption(
+        option = QuizOption(
             quiz_question_id=question_id,
             option_text=form.option_text.data,
             is_correct=form.is_correct.data
-                )
-                db.session.add(option)
+        )
+        db.session.add(option)
         db.session.commit()
         
         flash('Option added successfully!', 'success')
@@ -1200,7 +1109,7 @@ def admin_edit_option(option_id):
     
     if form.validate_on_submit():
         form.populate_obj(option)
-    db.session.commit()
+        db.session.commit()
         
         flash('Option updated successfully!', 'success')
         return redirect(url_for('admin_edit_quiz', quiz_id=option.question.quiz_id))
@@ -1236,10 +1145,7 @@ def admin_delete_option(option_id):
     return redirect(url_for('admin_edit_quiz', quiz_id=question.quiz_id))
 
 def add_missing_lesson_columns():
-    """
-    Add missing columns to Lesson table if they don't exist.
-    This function is used during app startup to ensure database schema is updated.
-    """
+    """Add missing columns to Lesson table if they don't exist"""
     try:
         # Check if columns exist
         conn = sqlite3.connect('instance/elearning.db')
@@ -1281,11 +1187,11 @@ if __name__ == '__main__':
         add_missing_lesson_columns()
         
         # Add sample data if enabled
-        SEED_DATA = False  # <-- CHANGE THIS TO True TO SEED
+        SEED_DATA = False # <-- CHANGE THIS TO True TO SEED
         
         if SEED_DATA:
             print("SEED_DATA is True. Attempting to add sample data...")
-        add_sample_courses()
+            add_sample_courses()
         else:
             print("SEED_DATA is False. Skipping add_sample_courses.")
     

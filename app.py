@@ -61,8 +61,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_admin = db.Column(db.Boolean, default=False)
-    enrollments = db.relationship('Enrollment', backref='student', lazy=True, 
-                                foreign_keys='Enrollment.user_id')
+    enrollments = db.relationship('Enrollment', backref='student', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -77,37 +76,20 @@ class Course(db.Model):
     semantic_tags = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    enrollments = db.relationship('Enrollment', lazy=True)
+    enrollments = db.relationship('Enrollment', backref='course', lazy=True)
     max_students = db.Column(db.Integer, default=50)
     start_date = db.Column(db.DateTime, default=datetime.utcnow)
     duration_weeks = db.Column(db.Integer, default=12)
 
 class Enrollment(db.Model):
-    """
-    Enrollment model tracking student enrollment in courses.
-    Establishes the many-to-many relationship between users and courses.
-    """
-    __tablename__ = 'enrollment'
-    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False, index=True)
-    enrolled_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    status = db.Column(db.String(20), default='active', index=True)  # active, completed, dropped
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    enrolled_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='active')  # active, completed, dropped
     progress = db.Column(db.Float, default=0.0)  # 0 to 100
     
-    # Define relationship to Course only, User relationship comes from backref
-    # Removed the backref since it's already defined in Course model
-    course = db.relationship('Course', lazy='joined')
-    
-    __table_args__ = (
-        db.UniqueConstraint('user_id', 'course_id', name='unique_enrollment'),
-        db.Index('idx_enrollment_status', 'status'),
-    )
-    
-    def __repr__(self):
-        """String representation of the enrollment"""
-        return f"<Enrollment {self.id}: User {self.user_id} in Course {self.course_id}>"
+    __table_args__ = (db.UniqueConstraint('user_id', 'course_id', name='unique_enrollment'),)
 
 class LearningPath(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -117,25 +99,15 @@ class LearningPath(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 class Lesson(db.Model):
-    """
-    Lesson model representing educational content within a course.
-    Contains all information needed to display a lesson to a student.
-    """
-    __tablename__ = 'lesson'
-    
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False, index=True)
+    title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    lesson_number = db.Column(db.Integer, nullable=False, index=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False, index=True)
-    
-    # Explicit relationship definition
-    course = db.relationship('Course', backref=db.backref('lessons', 
-                                                        lazy=True, 
-                                                        order_by='Lesson.lesson_number'), 
-                           lazy='joined')
+    lesson_number = db.Column(db.Integer, nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    course = db.relationship('Course', backref='lessons', lazy=True)
     
     # These columns might not exist in the database yet
+    # Use __table_args__ to set these columns to be deferred/nullable
     video_url = db.Column(db.String(200), nullable=True)
     resources = db.Column(db.Text, nullable=True)
     duration_minutes = db.Column(db.Integer, nullable=True, default=60)
@@ -144,10 +116,6 @@ class Lesson(db.Model):
     def get_duration(self):
         """Safe getter for duration_minutes with fallback"""
         return self.duration_minutes if self.duration_minutes is not None else 60
-    
-    def __repr__(self):
-        """String representation of the lesson"""
-        return f"<Lesson {self.id}: {self.title} (Course {self.course_id})>"
 
 class LessonCompletion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -156,33 +124,11 @@ class LessonCompletion(db.Model):
     completed_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Quiz(db.Model):
-    """
-    Quiz model representing a set of questions to test student knowledge.
-    Each quiz is associated with a specific lesson.
-    """
-    __tablename__ = 'quiz'
-    
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False, index=True)
-    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False, index=True)
-    
-    # Define relationships explicitly
-    lesson = db.relationship('Lesson', 
-                          backref=db.backref('quiz', uselist=False, cascade="all, delete-orphan"), 
-                          lazy='joined',
-                          single_parent=True)
-    questions = db.relationship('QuizQuestion', 
-                             backref='quiz', 
-                             lazy='select',
-                             cascade="all, delete-orphan")
-    attempts = db.relationship('QuizAttempt', 
-                            backref='quiz', 
-                            lazy='dynamic',
-                            cascade="all, delete-orphan")
-    
-    def __repr__(self):
-        """String representation of the quiz"""
-        return f"<Quiz {self.id}: {self.title} for Lesson {self.lesson_id}>"
+    title = db.Column(db.String(100), nullable=False)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
+    lesson = db.relationship('Lesson', backref=db.backref('quiz', uselist=False), lazy=True)
+    questions = db.relationship('QuizQuestion', backref='quiz', lazy=True)
 
 class QuizQuestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -670,53 +616,58 @@ def admin_dashboard():
     """
     Admin dashboard view showing platform statistics and recent activity.
     """
-    # Get all required stats in a single query
-    stats_query = db.session.query(
-        db.func.count(db.distinct(Course.id)).label('total_courses'),
-        db.func.count(db.distinct(User.id)).filter(User.is_admin == False).label('total_students'),
-        db.func.count(Enrollment.id).label('total_enrollments'),
-        db.func.count(db.case([(Enrollment.status == 'completed', 1)])).label('completed_enrollments')
-    ).select_from(Enrollment)\
-      .outerjoin(Course, Enrollment.course_id == Course.id)\
-      .outerjoin(User, Enrollment.user_id == User.id)\
-      .filter(User.is_admin == False)\
-      .first()
-
-    total_courses = stats_query.total_courses
-    total_students = stats_query.total_students
-    total_enrollments = stats_query.total_enrollments
+    # Use eager loading to reduce database queries
+    courses = Course.query.options(
+        db.joinedload(Course.enrollments)
+    ).all()
+    
+    # Get students and enrollments in a single query
+    user_stats = db.session.query(
+        db.func.count(db.distinct(User.id)).label('total_students'),
+        db.func.count(Enrollment.id).label('total_enrollments')
+    ).outerjoin(Enrollment, User.id == Enrollment.user_id).filter(User.is_admin == False).first()
+    
+    total_students = user_stats.total_students
+    total_enrollments = user_stats.total_enrollments
+    total_courses = len(courses)
     
     # Calculate completion rate
     completion_rate = 0
     if total_enrollments > 0:
         completion_rate = round((stats_query.completed_enrollments / total_enrollments) * 100)
     
-    # Generate monthly enrollment data - use a single query with date filtering
-    current_date = datetime.utcnow()
-    start_date = current_date - timedelta(days=180)  # Last 6 months
-    
-    # Get monthly enrollments in a single query
-    month_enrollments = db.session.query(
-        db.func.strftime('%Y-%m', Enrollment.enrolled_at).label('month'),
-        db.func.count().label('count')
-    ).filter(
-        Enrollment.enrolled_at >= start_date
-    ).group_by('month').order_by('month').all()
-    
-    # Format for chart display
+    # Generate monthly enrollment data for the chart
+    current_month = datetime.utcnow().month
+    current_year = datetime.utcnow().year
     monthly_enrollments = []
-    for month_data in month_enrollments:
-        year, month = month_data.month.split('-')
-        month_name = datetime(int(year), int(month), 1).strftime('%b')
+    
+    # Generate data for the last 6 months
+    for i in range(5, -1, -1):
+        month = ((current_month - i - 1) % 12) + 1
+        year = current_year if month <= current_month else current_year - 1
+        
+        # Start and end dates for the month
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, month + 1, 1)
+        
+        # Count enrollments for this month
+        count = Enrollment.query.filter(
+            Enrollment.enrolled_at >= start_date,
+            Enrollment.enrolled_at < end_date
+        ).count()
+        
+        # Month name
+        month_name = start_date.strftime('%b')
+        
         monthly_enrollments.append({
             "month": month_name,
-            "count": month_data.count
+            "count": count
         })
     
-    # Get courses with tags for category analysis
-    courses = Course.query.filter(Course.semantic_tags != None).all()
-    
-    # Extract and count categories efficiently
+    # Extract categories from course tags efficiently
     all_tags = []
     for course in courses:
         if course.semantic_tags:
@@ -727,9 +678,11 @@ def admin_dashboard():
     for tag in all_tags:
         category_counts[tag] = category_counts.get(tag, 0) + 1
     sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+    
+    # Top categories (top 6)
     top_categories = dict(sorted_categories[:6])
     
-    # Get recent activity with a single efficient query
+    # Recent activity - use joins explicitly due to relationship changes
     recent_enrollments = Enrollment.query.join(
         User, User.id == Enrollment.user_id
     ).join(
@@ -739,7 +692,7 @@ def admin_dashboard():
         db.contains_eager(Enrollment.course)
     ).order_by(Enrollment.enrolled_at.desc()).limit(5).all()
     
-    # Recent completions - more efficient query
+    # Recent completions - students who have completed courses
     recent_completions = Enrollment.query.filter_by(status='completed').join(
         User, User.id == Enrollment.user_id
     ).join(
@@ -767,17 +720,18 @@ def admin_dashboard():
     
     # Prepare statistics with robust default values
     stats = {
-        'total_courses': total_courses or 0,
-        'total_students': total_students or 0,
-        'enrollments': total_enrollments or 0,
-        'completion_rate': completion_rate or 0,
-        'monthly_enrollments': monthly_enrollments,
+        'total_courses': total_courses,
+        'total_students': total_students,
+        'total_enrollments': total_enrollments,
+        'completion_rate': completion_rate,
+        'categories': sorted_categories,
+        'top_categories': top_categories,
+        'monthly_enrollments': monthly_enrollments
     }
     
     return render_template('admin/dashboard.html', 
                            stats=stats, 
                            courses=courses,
-                           categories=categories_dict,
                            recent_enrollments=recent_enrollments,
                            recent_completions=recent_completions)
 
@@ -838,15 +792,141 @@ def set_dark_mode():
     else:
         return jsonify({"status": "error", "message": "Invalid dark_mode value"}), 400
 
+def add_sample_courses():
+    """
+    Add sample courses, lessons, quizzes, and quiz questions to the database.
+    This function is used for initial data seeding.
+    """
+    # Create admin user if none exists
+    admin_email = 'bupechiyana11@gmail.com'
+    admin = User.query.filter_by(email=admin_email).first()
+    if not admin:
+        admin = User(
+            username='Bupe Chiyana',
+            email=admin_email,
+            is_admin=True
+        )
+        admin.set_password('12345qwert')
+        db.session.add(admin)
+        # Commit admin user separately
+        try:
+            db.session.commit()
+            print("Admin user created/verified.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error adding admin user: {e}")
+            return # Stop if admin can't be added
+
+    # --- Create Courses ---
+    courses_data = [
+        {'title': 'Introduction to Python', 'description': 'Learn Python programming from scratch', 'semantic_tags': 'programming,python,beginner', 'max_students': 50, 'duration_weeks': 8},
+        {'title': 'Web Development Fundamentals', 'description': 'Master HTML, CSS, and JavaScript', 'semantic_tags': 'web,html,css,javascript', 'max_students': 40, 'duration_weeks': 10},
+        {'title': 'Cloud Architecture and Design', 'description': 'Learn to design scalable and resilient cloud architectures using AWS, Azure, and GCP.', 'semantic_tags': 'cloud,aws,azure,gcp,architecture,infrastructure', 'max_students': 40, 'duration_weeks': 10},
+        {'title': 'Advanced Cybersecurity', 'description': 'Master cybersecurity concepts, penetration testing, and security architecture.', 'semantic_tags': 'security,cybersecurity,pentest,networking,encryption', 'max_students': 35, 'duration_weeks': 12},
+        {'title': 'Data Engineering Pipeline Design', 'description': 'Build robust data pipelines using modern tools and best practices.', 'semantic_tags': 'data,etl,python,sql,apache,spark,airflow', 'max_students': 45, 'duration_weeks': 8},
+        {'title': 'Cross-Platform Mobile Development', 'description': 'Create mobile apps for iOS and Android using React Native and Flutter.', 'semantic_tags': 'mobile,react-native,flutter,ios,android,javascript', 'max_students': 50, 'duration_weeks': 10},
+        {'title': 'DevOps and CI/CD', 'description': 'Implement DevOps practices and build CI/CD pipelines using modern tools.', 'semantic_tags': 'devops,ci-cd,jenkins,docker,kubernetes,git', 'max_students': 40, 'duration_weeks': 8},
+        {'title': 'AI and Machine Learning Engineering', 'description': 'Design and deploy production-ready AI/ML systems at scale.', 'semantic_tags': 'ai,ml,python,tensorflow,pytorch,mlops', 'max_students': 35, 'duration_weeks': 14},
+        {'title': 'Blockchain Development', 'description': 'Build decentralized applications and smart contracts on Ethereum and other platforms.', 'semantic_tags': 'blockchain,ethereum,solidity,web3,smart-contracts', 'max_students': 30, 'duration_weeks': 10},
+        {'title': 'Microservices Architecture', 'description': 'Design and implement scalable microservices architectures using modern tools.', 'semantic_tags': 'microservices,architecture,docker,kubernetes,api,spring', 'max_students': 45, 'duration_weeks': 12}
+    ]
+
+    created_course_objects = []
+    admin_user_id = admin.id if admin else 1 # Fallback to 1
+
+    print("Checking and creating courses...")
+    for course_data in courses_data:
+        existing_course = Course.query.filter_by(title=course_data['title']).first()
+        if not existing_course:
+            course = Course(
+                title=course_data['title'],
+                description=course_data['description'],
+                semantic_tags=course_data['semantic_tags'],
+                user_id=admin_user_id,
+                max_students=course_data['max_students'],
+                duration_weeks=course_data['duration_weeks']
+            )
+            db.session.add(course)
+            created_course_objects.append(course) # Add the object
+            # print(f"  Added course '{course.title}' to session.") # Keep console cleaner
+        else:
+            created_course_objects.append(existing_course)
+            # print(f"  Course '{course_data['title']}' already exists.")
+
+    try:
+        db.session.commit()
+        print(f"Committed course additions/checks.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error committing courses: {e}")
+        return
+
+    # --- Add Lessons and Quizzes for Each Course ---
+    print("\nChecking and adding lessons/quizzes...")
+    for course in created_course_objects:
+        print(f"Processing course: {course.title} (ID: {course.id})")
+        try:
+            # Check if course already has 10 lessons
+            lesson_count = Lesson.query.filter_by(course_id=course.id).count()
+            if lesson_count >= 10:
+                print(f"  Skipping: Course already has {lesson_count} lessons.")
+                continue
+
+            lessons_added_this_run = 0
+            for i in range(1, 11):
+                # Create Lesson
+                lesson = Lesson(
+                    title=f"{course.title} - Lesson {i}",
+                    content=f"Placeholder content for Lesson {i} of {course.title}.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.",
+                    lesson_number=i,
+                    course_id=course.id
+                )
+                db.session.add(lesson)
+                db.session.flush() # Need lesson ID for Quiz FK
+
+                # Create Quiz for the Lesson
+                quiz = Quiz(
+                    title=f"Quiz for Lesson {i}",
+                    lesson_id=lesson.id
+                )
+                db.session.add(quiz)
+                db.session.flush() # Need quiz ID for Question FK
+
+                # Create Quiz Questions
+                for q_num in range(1, 3):
+                    question = QuizQuestion(
+                        quiz_id=quiz.id,
+                        question_text=f"Placeholder Question {q_num} for Lesson {i} Quiz?"
+                    )
+                    db.session.add(question)
+                    db.session.flush() # Need question ID for Option FK
+
+                    # Create Quiz Options
+                    for opt_num in range(1, 5):
+                        option = QuizOption(
+                            quiz_question_id=question.id,
+                            option_text=f"Option {opt_num}",
+                            is_correct=(opt_num == 1) # First option is correct
+                        )
+                        db.session.add(option)
+                lessons_added_this_run += 1 # Increment after successful lesson/quiz/q/o creation
+
+            # Commit after all lessons/quizzes for this specific course are added
+            db.session.commit()
+            print(f"  Successfully added {lessons_added_this_run} lessons/quizzes for course ID {course.id}.")
+
+        except Exception as e:
+            # Rollback changes for the current course if an error occurred
+            db.session.rollback()
+            print(f"  Error adding lessons/quizzes for course ID {course.id}: {e}")
+            # Continue to the next course even if one fails
+            continue
+
+    print("\nFinished adding sample data.")
+
 @app.route('/admin/courses/<int:course_id>/lessons')
 @admin_required
 def admin_course_lessons(course_id):
-    """
-    Display and manage lessons for a given course.
-    
-    Args:
-        course_id: The ID of the course to display lessons for
-    """
     course = Course.query.get_or_404(course_id)
     
     try:
@@ -890,12 +970,6 @@ def admin_course_lessons(course_id):
 @app.route('/admin/lessons/new/<int:course_id>', methods=['GET', 'POST'])
 @admin_required
 def admin_new_lesson(course_id):
-    """
-    Create a new lesson for a course.
-    
-    Args:
-        course_id: ID of the course to add a lesson to
-    """
     course = Course.query.get_or_404(course_id)
     form = LessonForm()
     
@@ -915,7 +989,7 @@ def admin_new_lesson(course_id):
         )
         
         db.session.add(lesson)
-        db.session.commit()
+    db.session.commit()
 
         flash('Lesson created successfully!', 'success')
         return redirect(url_for('admin_course_lessons', course_id=course_id))
@@ -971,15 +1045,6 @@ def admin_delete_lesson(lesson_id):
 @app.route('/admin/lessons/<int:lesson_id>/reorder', methods=['POST'])
 @admin_required
 def admin_reorder_lesson(lesson_id):
-    """
-    Reorder lessons for a course by moving a lesson up or down.
-    
-    Args:
-        lesson_id: ID of the lesson to reorder
-        
-    Returns:
-        JSON response with success status and message
-    """
     lesson = Lesson.query.get_or_404(lesson_id)
     direction = request.json.get('direction')
     course_id = request.json.get('course_id') or lesson.course_id
@@ -1013,7 +1078,7 @@ def admin_reorder_lesson(lesson_id):
     lesson.lesson_number = target_lesson_number
     target_lesson.lesson_number = current_lesson_number
     
-    db.session.commit()
+        db.session.commit()
 
     return jsonify({'success': True, 'message': f'Lesson moved {direction} successfully'})
 
@@ -1079,7 +1144,7 @@ def admin_delete_quiz(quiz_id):
     
     # Delete the quiz
     db.session.delete(quiz)
-    db.session.commit()
+        db.session.commit()
 
     flash('Quiz deleted successfully!', 'success')
     return redirect(url_for('admin_course_lessons', course_id=course_id))
@@ -1091,12 +1156,12 @@ def admin_new_question(quiz_id):
     form = QuizQuestionForm()
     
     if form.validate_on_submit():
-        question = QuizQuestion(
+            question = QuizQuestion(
             quiz_id=quiz_id,
             question_text=form.question_text.data
-        )
-        db.session.add(question)
-        db.session.commit()
+            )
+            db.session.add(question)
+            db.session.commit()
 
         flash('Question added successfully! Now add some options.', 'success')
         return redirect(url_for('admin_edit_quiz', quiz_id=quiz_id))
@@ -1125,12 +1190,12 @@ def admin_new_option(question_id):
     form = QuizOptionForm()
     
     if form.validate_on_submit():
-        option = QuizOption(
+                option = QuizOption(
             quiz_question_id=question_id,
             option_text=form.option_text.data,
             is_correct=form.is_correct.data
-        )
-        db.session.add(option)
+                )
+                db.session.add(option)
         db.session.commit()
         
         flash('Option added successfully!', 'success')
@@ -1146,7 +1211,7 @@ def admin_edit_option(option_id):
     
     if form.validate_on_submit():
         form.populate_obj(option)
-        db.session.commit()
+    db.session.commit()
         
         flash('Option updated successfully!', 'success')
         return redirect(url_for('admin_edit_quiz', quiz_id=option.question.quiz_id))
@@ -1181,111 +1246,44 @@ def admin_delete_option(option_id):
     flash('Option deleted successfully!', 'success')
     return redirect(url_for('admin_edit_quiz', quiz_id=question.quiz_id))
 
-@app.route('/quiz/results/<int:attempt_id>')
-@login_required
-def view_quiz_results(attempt_id):
-    # Get the attempt
-    attempt = QuizAttempt.query.filter_by(id=attempt_id, user_id=current_user.id).first_or_404()
-    quiz = Quiz.query.get_or_404(attempt.quiz_id)
-    lesson = Lesson.query.filter_by(id=quiz.lesson_id).first_or_404()
-    
-    # Check if this quiz belongs to a course the user is enrolled in
-    enrollment = Enrollment.query.filter_by(
-        user_id=current_user.id,
-        course_id=lesson.course_id
-    ).first_or_404()
-    
-    # Check if there's a next lesson
-    next_lesson = Lesson.query.filter_by(
-        course_id=lesson.course_id,
-        lesson_number=lesson.lesson_number + 1
-    ).first()
-    
-    # If we have stored results in the session, use them
-    if 'quiz_results' in session and session['quiz_results']['attempt_id'] == attempt_id:
-        correct_answers = session['quiz_results']['correct_answers']
-        total_questions = session['quiz_results']['total_questions']
+def add_missing_lesson_columns():
+    """
+    Add missing columns to Lesson table if they don't exist.
+    This function is used during app startup to ensure database schema is updated.
+    """
+    try:
+        # Check if columns exist
+        conn = sqlite3.connect('instance/elearning.db')
+        cursor = conn.cursor()
         
-        # Reconstruct questions with answers
-        questions_with_answers = []
-        for question_id, option_id, is_correct in session['quiz_results']['questions_data']:
-            question = QuizQuestion.query.get(question_id)
-            option = QuizOption.query.get(option_id) if option_id else None
-            questions_with_answers.append((question, option, is_correct))
-    else:
-        # Otherwise reconstruct from the database
-        questions = QuizQuestion.query.filter_by(quiz_id=quiz.id).all()
-        total_questions = len(questions)
+        # Get column info
+        cursor.execute("PRAGMA table_info(lesson)")
+        columns = cursor.fetchall()
+        column_names = [column[1] for column in columns]
         
-        # We don't store actual answers in the database, so we'll do our best estimate
-        # based on the score
-        correct_answers = int((attempt.score / 100) * total_questions)
+        # Add columns if they don't exist
+        if 'video_url' not in column_names:
+            print("Adding 'video_url' column to lesson table...")
+            cursor.execute("ALTER TABLE lesson ADD COLUMN video_url TEXT")
+            print("Added 'video_url' column successfully.")
         
-        # Just show questions without specific user answers
-        questions_with_answers = []
-        for question in questions:
-            # Get all options
-            question.options = QuizOption.query.filter_by(quiz_question_id=question.id).all()
-            # Find the correct option
-            correct_option = next((opt for opt in question.options if opt.is_correct), None)
-            questions_with_answers.append((question, correct_option, True))
-    
-    return render_template(
-        'quiz_results.html',
-        quiz=quiz,
-        lesson=lesson,
-        attempt=attempt,
-        correct_answers=correct_answers,
-        total_questions=total_questions,
-        questions_with_answers=questions_with_answers,
-        next_lesson=next_lesson
-    )
-
-@app.route('/admin/quizzes/<int:quiz_id>/attempts')
-@admin_required
-def admin_quiz_attempts(quiz_id):
-    quiz = Quiz.query.get_or_404(quiz_id)
-    lesson = Lesson.query.get_or_404(quiz.lesson_id)
-    course = Course.query.get_or_404(lesson.course_id)
-    
-    # Get all attempts for this quiz, ordered by completion date (newest first)
-    attempts = QuizAttempt.query.filter_by(quiz_id=quiz_id).order_by(QuizAttempt.completed_at.desc()).all()
-    
-    # Preload users for all attempts
-    user_ids = [attempt.user_id for attempt in attempts]
-    users = {user.id: user for user in User.query.filter(User.id.in_(user_ids)).all()}
-    
-    # Calculate statistics
-    total_attempts = len(attempts)
-    avg_score = sum(attempt.score for attempt in attempts) / total_attempts if total_attempts > 0 else 0
-    passing_attempts = sum(1 for attempt in attempts if attempt.score >= 70)
-    pass_rate = (passing_attempts / total_attempts * 100) if total_attempts > 0 else 0
-    
-    # Group attempts by user for the leaderboard
-    user_best_attempts = {}
-    for attempt in attempts:
-        user_id = attempt.user_id
-        if user_id not in user_best_attempts or attempt.score > user_best_attempts[user_id].score:
-            user_best_attempts[user_id] = attempt
-    
-    # Sort the leaderboard by score (highest first)
-    leaderboard = sorted(user_best_attempts.values(), key=lambda x: x.score, reverse=True)
-    
-    return render_template(
-        'admin/quiz_attempts.html',
-        quiz=quiz,
-        lesson=lesson,
-        course=course,
-        attempts=attempts,
-        users=users,
-        stats={
-            'total_attempts': total_attempts,
-            'avg_score': avg_score,
-            'passing_attempts': passing_attempts,
-            'pass_rate': pass_rate
-        },
-        leaderboard=leaderboard
-    )
+        if 'resources' not in column_names:
+            print("Adding 'resources' column to lesson table...")
+            cursor.execute("ALTER TABLE lesson ADD COLUMN resources TEXT")
+            print("Added 'resources' column successfully.")
+        
+        if 'duration_minutes' not in column_names:
+            print("Adding 'duration_minutes' column to lesson table...")
+            cursor.execute("ALTER TABLE lesson ADD COLUMN duration_minutes INTEGER DEFAULT 60")
+            print("Added 'duration_minutes' column successfully.")
+        
+        conn.commit()
+        conn.close()
+        
+    except Error as e:
+        print(f"Database error: {e}")
+        if 'conn' in locals() and conn:
+            conn.close()
 
 if __name__ == '__main__':
     # Create database tables
@@ -1293,12 +1291,12 @@ if __name__ == '__main__':
         db.create_all()
         
         # Add sample data if enabled
-        SEED_DATA = False  # <-- CHANGE THIS TO True TO SEED
+        SEED_DATA = False # <-- CHANGE THIS TO True TO SEED
         
         if SEED_DATA:
             from utils.db_sample_data import add_sample_data
             print("SEED_DATA is True. Attempting to add sample data...")
-            add_sample_data()
+            add_sample_courses()
         else:
             print("SEED_DATA is False. Skipping sample data creation.")
     
